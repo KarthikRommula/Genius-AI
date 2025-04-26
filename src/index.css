@@ -1,3 +1,90 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+  @keyframes blob {
+    0%, 100% {
+      transform: translateY(0px) scale(1);
+    }
+    33% {
+      transform: translateY(-30px) scale(1.1);
+    }
+    66% {
+      transform: translateY(10px) scale(0.95);
+    }
+  }
+  .animate-blob-slow {
+    animation: blob 16s infinite ease-in-out;
+  }
+  .animate-blob-fast {
+    animation: blob 10s infinite ease-in-out;
+  }
+  .drop-shadow-glow {
+    filter: drop-shadow(0 0 8px #a78bfa) drop-shadow(0 0 16px #7c3aed80);
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  body {
+    @apply bg-gray-50;
+  }
+}
+
+@layer components {
+  .text-strong {
+    @apply text-gray-900 dark:text-white;
+  }
+  .card-dark {
+    @apply bg-slate-900 text-white shadow-xl border border-indigo-700/40;
+  }
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500;
+  }
+  
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+  }
+  
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg;
+  }
+  
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-xl bg-white text-indigo-700 font-semibold hover:bg-indigo-100 transition-all transform hover:scale-105 shadow-lg border border-indigo-200;
+  }
+  
+  .glass-card {
+    @apply bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border border-indigo-200/50 shadow-xl;
+  }
+  
+  .section-padding {
+    @apply py-16 md:py-24;
+  }
+}
+
+.animate-delay-100 {
+  animation-delay: 100ms;
+}
+
+.animate-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animate-delay-300 {
+  animation-delay: 300ms;
+}
+
+.animate-delay-400 {
+  animation-delay: 400ms;
+}
+
+.animate-delay-500 {
+  animation-delay: 500ms;
+}
