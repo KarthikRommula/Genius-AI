@@ -2,6 +2,19 @@ import { useEffect, useState } from 'react';
 import { BookOpen, Code, Video, Users, Award, Brain, ArrowRight, Star, Check, Target, Medal, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+// Add a style tag to ensure black background during loading
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.innerHTML = `
+    html, body {
+      background-color: #000 !important;
+      margin: 0;
+      padding: 0;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 const FEATURED_COURSES = [
   {
     id: '1',
@@ -60,15 +73,76 @@ const STATS = [
 export function Home() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set(['hero']));
+  const [imagesLoaded, setImagesLoaded] = useState(false);
   
-  // Handle initial fade-in animation with mobile optimization
+  // Set background color immediately on component mount
   useEffect(() => {
+    // Force black background on body and html
+    document.documentElement.style.backgroundColor = '#000';
+    document.body.style.backgroundColor = '#000';
+    
+    // Detect if we're on a mobile device
+    const isMobile = window.innerWidth < 768;
+    
+    // Preload critical images with priority based on device
+    const preloadImages = () => {
+      // Only preload the most critical image on mobile to improve initial load time
+      const criticalImages = isMobile ? 
+        ['/images/HERO.avif'] : 
+        [
+          '/images/HERO.avif',
+          '/images/PF1.webp',
+          '/images/PF2.webp',
+          '/images/PF3.webp'
+        ];
+      
+      let loadedCount = 0;
+      criticalImages.forEach(src => {
+        const img = new Image();
+        // Add fetchpriority hint for the hero image
+        if (src === '/images/HERO.avif') {
+          img.setAttribute('fetchpriority', 'high');
+        }
+        img.src = src;
+        img.onload = () => {
+          loadedCount++;
+          if (loadedCount === criticalImages.length) {
+            setImagesLoaded(true);
+            // If on mobile, load the rest of the images after the critical ones
+            if (isMobile) {
+              const secondaryImages = [
+                '/images/PF1.webp',
+                '/images/PF2.webp',
+                '/images/PF3.webp'
+              ];
+              secondaryImages.forEach(src => {
+                const img = new Image();
+                img.src = src;
+              });
+            }
+          }
+        };
+        img.onerror = () => {
+          loadedCount++;
+          if (loadedCount === criticalImages.length) {
+            setImagesLoaded(true);
+          }
+        };
+      });
+      
+      // Shorter fallback timeout on mobile for better perceived performance
+      setTimeout(() => setImagesLoaded(true), isMobile ? 1000 : 2000);
+    };
+    
+    preloadImages();
+    
     // Only add animation class on non-mobile devices
-    if (window.innerWidth >= 768) {
+    if (!isMobile) {
       document.body.classList.add('animate-fade-in');
     }
-    // Mark component as loaded after initial animation
-    const timer = setTimeout(() => setIsLoaded(true), 500);
+    
+    // Mark component as loaded after initial animation - faster on mobile
+    const timer = setTimeout(() => setIsLoaded(true), isMobile ? 300 : 500);
     
     return () => {
       document.body.classList.remove('animate-fade-in');
@@ -76,23 +150,56 @@ export function Home() {
     };
   }, []);
   
+  // Detect if we're on a mobile device - moved to component level for reuse
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+  
+  // Define RequestIdleCallback interfaces for TypeScript
+  interface RequestIdleCallbackOptions {
+    timeout?: number;
+  }
+  
+  interface RequestIdleCallbackDeadline {
+    didTimeout: boolean;
+    timeRemaining: () => number;
+  }
+  
+  // Instead of extending Window, define a standalone interface
+  interface WindowWithIdleCallback {
+    requestIdleCallback: (callback: (deadline: RequestIdleCallbackDeadline) => void, opts?: RequestIdleCallbackOptions) => number;
+    cancelIdleCallback: (handle: number) => void;
+  }
+  
   // Intersection Observer for lazy loading sections
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || !imagesLoaded) return;
     
+    // Optimize observer options for mobile
     const observerOptions = {
       root: null,
-      rootMargin: '0px',
-      threshold: 0.1
+      // Increase rootMargin on mobile to start loading earlier when scrolling
+      rootMargin: isMobile ? '100px' : '0px',
+      threshold: isMobile ? 0.05 : 0.1
     };
     
-    const sectionObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && entry.target.id) {
-          setVisibleSections(prev => new Set(prev).add(entry.target.id));
-        }
-      });
-    }, observerOptions);
+    // Use requestIdleCallback on non-mobile devices for better performance
+    const handleIntersection = (entries: IntersectionObserverEntry[]) => {
+      const updateVisibility = () => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && entry.target.id) {
+            setVisibleSections(prev => new Set(prev).add(entry.target.id));
+          }
+        });
+      };
+      
+      if (!isMobile && 'requestIdleCallback' in window) {
+        // Use proper typing for requestIdleCallback
+        (window as unknown as WindowWithIdleCallback).requestIdleCallback(updateVisibility);
+      } else {
+        updateVisibility();
+      }
+    };
+    
+    const sectionObserver = new IntersectionObserver(handleIntersection, observerOptions);
     
     // Observe all sections
     document.querySelectorAll('section[id]').forEach(section => {
@@ -100,11 +207,16 @@ export function Home() {
     });
     
     return () => sectionObserver.disconnect();
-  }, [isLoaded]);
+  }, [isLoaded, imagesLoaded, isMobile]);
 
   return (
-    <main className="min-h-screen bg-black pt-16 sm:pt-20 md:pt-0">
+    <main className="min-h-screen bg-black pt-16 sm:pt-20 md:pt-0" style={{ backgroundColor: '#000', overscrollBehavior: 'none' }}>
       {/* Hero Section */}
+      {!imagesLoaded && (
+        <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-3 sm:border-4 border-indigo-500 border-t-transparent animate-spin" style={{ willChange: 'transform' }}></div>
+        </div>
+      )}
       <section id="hero" className="relative bg-gradient-to-br from-black via-gray-900/95 to-gray-900/90 overflow-hidden mt-4 sm:mt-6 md:mt-0">
         {/* Skip to main content link for accessibility */}
         <a href="#courses" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-md">
@@ -112,12 +224,22 @@ export function Home() {
         </a>
         {/* Subtle color accents */}
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/10 via-violet-950/5 to-transparent pointer-events-none"></div>
-        {/* Animated background blobs */}
-        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 md:animate-blob hidden md:block"></div>
-        <div className="absolute top-0 -right-4 w-72 h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 md:animate-blob md:animate-delay-200 hidden md:block"></div>
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 md:animate-blob md:animate-delay-400 hidden md:block"></div>
+        {/* Animated background blobs - optimized for performance */}
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 md:animate-blob hidden md:block" style={{ willChange: 'transform, opacity' }}></div>
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 md:animate-blob md:animate-delay-200 hidden md:block" style={{ willChange: 'transform, opacity' }}></div>
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 md:animate-blob md:animate-delay-400 hidden md:block" style={{ willChange: 'transform, opacity' }}></div>
         
-        <div className="absolute inset-0 bg-[url('/images/HERO.avif')] opacity-10 bg-cover bg-center" aria-hidden="true" role="presentation"></div>
+        <div 
+          className="absolute inset-0 opacity-10 bg-cover bg-center bg-black" 
+          style={{
+            backgroundImage: imagesLoaded ? "url('/images/HERO.avif')" : 'none',
+            backgroundColor: '#000',
+            willChange: 'opacity',
+            transform: 'translateZ(0)' // Force GPU acceleration for smoother rendering
+          }} 
+          aria-hidden="true" 
+          role="presentation"
+        ></div>
         
         {/* Subtle SVG pattern for extra depth */}
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
@@ -134,30 +256,30 @@ export function Home() {
         {/* Glassmorphism overlay */}
         <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
         
-        <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8 relative py-12 sm:py-16 md:py-32 flex flex-col items-center justify-center">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative py-10 sm:py-16 md:py-32 flex flex-col items-center justify-center">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center px-4 py-2.5 rounded-full bg-indigo-500/30 backdrop-blur-sm border border-indigo-400/50 text-indigo-100 mb-6 md:mb-8 md:animate-fade-in sm:mt-10">
+            <div className="inline-flex items-center px-3 sm:px-4 py-2 sm:py-2.5 rounded-full bg-indigo-500/30 backdrop-blur-sm border border-indigo-400/50 text-indigo-100 mb-4 sm:mb-6 md:mb-8 md:animate-fade-in sm:mt-10" style={{ willChange: 'opacity, transform' }}>
               <span className="flex h-2 w-2 rounded-full bg-indigo-300 md:animate-pulse mr-2"></span>
               Trusted by 50,000+ BTech students worldwide
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold text-white mb-6 md:mb-8 tracking-tight md:animate-fade-in md:animate-delay-100 drop-shadow-lg">
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-extrabold text-white mb-4 sm:mb-6 md:mb-8 tracking-tight md:animate-fade-in md:animate-delay-100 drop-shadow-lg" style={{ willChange: 'opacity' }}>
               Transform Your
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-500 mt-2 md:animate-pulse-slow leading-[1.2] py-1">
                 Engineering Journey
               </span>
             </h1>
-            <div className="flex justify-center mt-8 mb-3 md:animate-fade-in md:animate-delay-200">
+            <div className="flex justify-center mt-6 sm:mt-8 mb-3 md:animate-fade-in md:animate-delay-200" style={{ willChange: 'opacity' }}>
               <span className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 text-white font-semibold shadow-lg backdrop-blur-sm text-base md:text-lg md:animate-float">
                 Empowering Future Engineers
               </span>
             </div>
-            <p className="text-lg sm:text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto mb-8 md:mb-12 leading-relaxed md:animate-fade-in md:animate-delay-200">
+            <p className="text-base sm:text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto mb-6 sm:mb-8 md:mb-12 leading-relaxed md:animate-fade-in md:animate-delay-200" style={{ willChange: 'opacity' }}>
               Access world-class engineering education with interactive courses, AI-powered learning, and a global community of peers and mentors.
             </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-6 md:animate-fade-in-up md:animate-delay-300">
+            <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 md:animate-fade-in-up md:animate-delay-300" style={{ willChange: 'opacity, transform' }}>
               <Link
                 to="/courses"
-                className="w-full sm:w-auto px-6 sm:px-8 py-4 bg-white/10 text-white border border-white/30 rounded-xl hover:bg-white/20 transition-all duration-300 flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl text-center"
+                className="w-full sm:w-auto px-5 sm:px-8 py-3.5 sm:py-4 bg-white/10 text-white border border-white/30 rounded-xl hover:bg-white/20 transition-all duration-300 flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl text-center"
                 aria-label="Explore all available courses"
               >
                 Explore Courses
@@ -165,7 +287,7 @@ export function Home() {
               </Link>
               <Link
                 to="/register"
-                className="w-full sm:w-auto px-6 sm:px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl transition-all duration-300 text-center"
+                className="w-full sm:w-auto px-5 sm:px-8 py-3.5 sm:py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl transition-all duration-300 text-center"
                 aria-label="Start your free trial"
               >
                 Start Free Trial
@@ -445,12 +567,18 @@ export function Home() {
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-violet-500/5 opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 hidden md:block will-change-opacity"></div>
                 <div className="relative">
                   <div className="relative h-48 sm:h-56 overflow-hidden bg-gray-900">
-                      <img
-                       src={course.thumbnail}
-                       alt={course.title}
-                       loading="lazy"
-                       className="w-full h-full object-cover transform md:group-hover:scale-110 transition-transform duration-700 will-change-transform"
-                     />
+                      <div 
+                       className="w-full h-full bg-gray-900 flex items-center justify-center"
+                       style={{
+                         backgroundImage: imagesLoaded ? `url(${course.thumbnail})` : 'none',
+                         backgroundSize: 'cover',
+                         backgroundPosition: 'center'
+                       }}
+                     >
+                       {!imagesLoaded && (
+                         <div className="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin"></div>
+                       )}
+                     </div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent"></div>
                     <div className="absolute top-3 sm:top-4 left-3 sm:left-4">
                       <span className="px-2.5 sm:px-3 py-1 bg-indigo-500/90 backdrop-blur-sm text-white text-xs sm:text-sm font-medium rounded-full shadow-sm">

@@ -32,6 +32,9 @@ const mockSearchResults: SearchResult[] = [
 ];
 
 export function Navbar() {
+  // Detect if we're on a mobile device
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+  
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,6 +45,11 @@ export function Navbar() {
   const profileRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  
+  // Memoize search results to prevent unnecessary re-renders
+  const filteredResults = useRef<SearchResult[]>([]);
+  // Store timeout reference to properly clear it
+  const searchTimeoutRef = useRef<number | null>(null);
   
   // Close menus when clicking outside
   useEffect(() => {
@@ -67,12 +75,16 @@ export function Navbar() {
   useEffect(() => {
     if (isMenuOpen) {
       document.body.classList.add('mobile-menu-open');
+      // Add overscroll-behavior to prevent background content from scrolling on mobile
+      document.body.style.overscrollBehavior = 'none';
     } else {
       document.body.classList.remove('mobile-menu-open');
+      document.body.style.overscrollBehavior = 'auto';
     }
     
     return () => {
       document.body.classList.remove('mobile-menu-open');
+      document.body.style.overscrollBehavior = 'auto';
     };
   }, [isMenuOpen]);
   
@@ -82,7 +94,7 @@ export function Navbar() {
     setShowSearchResults(false);
   };
   
-  // Handle search input change
+  // Handle search input change with debounce for better performance on mobile
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
@@ -95,15 +107,29 @@ export function Navbar() {
     
     setIsSearching(true);
     
-    // Simulate search delay
-    setTimeout(() => {
-      const filteredResults = mockSearchResults.filter(result =>
+    // Clear any existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // Use a longer debounce on mobile devices to reduce input lag
+    const debounceTime = isMobile ? 400 : 250;
+    
+    // Simulate search delay with debounce
+    searchTimeoutRef.current = window.setTimeout(() => {
+      // Filter results and store in ref to prevent unnecessary re-renders
+      filteredResults.current = mockSearchResults.filter(result =>
         result.title.toLowerCase().includes(query.toLowerCase())
       );
-      setSearchResults(filteredResults);
+      
+      // Only update state if we need to (optimization)
+      if (JSON.stringify(filteredResults.current) !== JSON.stringify(searchResults)) {
+        setSearchResults(filteredResults.current);
+      }
+      
       setIsSearching(false);
       setShowSearchResults(true);
-    }, 300);
+    }, debounceTime);
   };
   
   // Handle search submission
@@ -348,14 +374,19 @@ export function Navbar() {
               {/* Mobile search */}
                 <div className="px-4 py-2 mt-1">
                 <form onSubmit={handleSearchSubmit}>
-                  <div className="relative">
+                  <div className="relative" style={{ willChange: 'transform', transform: 'translateZ(0)' }}>
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <input
-                      type="text"
-                      placeholder="Search..."
+                      type="search"
+                      placeholder="Search courses, resources..."
+                      className="w-full bg-gray-800/50 border border-gray-700/50 rounded-lg py-2 pl-10 pr-8 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
                       value={searchQuery}
                       onChange={handleSearchChange}
-                        className="w-full pl-9 pr-9 py-1.5 rounded-md bg-slate-800/80 border border-slate-700/80 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                      onFocus={() => searchQuery.trim() !== '' && setShowSearchResults(true)}
+                      style={{ touchAction: 'manipulation' }}
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      spellCheck="false"
                     />
                     {searchQuery && (
                       <button 
@@ -371,7 +402,7 @@ export function Navbar() {
                 
                 {/* Mobile search results */}
                 {showSearchResults && searchResults.length > 0 && (
-                    <div className="mt-2 bg-gray-900/80 rounded-md border border-gray-800/30 animate-fadeIn">
+                    <div className="mt-2 bg-gray-900/80 rounded-md border border-gray-800/30 animate-fadeIn" style={{ willChange: 'opacity, transform' }}>
                     <div className="max-h-60 overflow-y-auto">
                       {searchResults.map((result) => (
                         <Link 
