@@ -1,6 +1,7 @@
-import { BookOpen, User, Menu, Search, ChevronDown, X } from 'lucide-react';
+import { BookOpen, User, Menu, Search, ChevronDown, X, Code, Users, FileText, Globe } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { isMobile } from '../utils/deviceDetection';
+import { searchContent, SearchResult } from '../utils/searchUtils';
 import './Navbar.css';
 
 interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
@@ -14,21 +15,7 @@ const Link = ({ to, children, className, ...props }: LinkProps) => (
   </a>
 );
 
-interface SearchResult {
-  id: string;
-  title: string;
-  type: 'course' | 'resource' | 'community';
-  url: string;
-}
 
-const mockSearchResults: SearchResult[] = [
-  { id: '1', title: 'Introduction to AI', type: 'course', url: '/courses/intro-to-ai' },
-  { id: '2', title: 'Machine Learning Basics', type: 'course', url: '/courses/ml-basics' },
-  { id: '3', title: 'Neural Networks Guide', type: 'resource', url: '/resources/neural-networks' },
-  { id: '4', title: 'AI Ethics Discussion', type: 'community', url: '/community/ai-ethics' },
-  { id: '5', title: 'Deep Learning Advanced', type: 'course', url: '/courses/deep-learning' },
-  { id: '6', title: 'Computer Vision Projects', type: 'resource', url: '/resources/computer-vision' }
-];
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -68,14 +55,34 @@ export function Navbar() {
   }, []);
   
   useEffect(() => {
+    // Store the current scroll position before locking the body
+    const scrollY = window.scrollY;
+    
     if (isMenuOpen) {
       document.body.classList.add('mobile-menu-open');
+      // Add padding to prevent content shift
+      document.body.style.paddingRight = `${window.innerWidth - document.documentElement.clientWidth}px`;
+      // Fix body position but maintain scroll position
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
     } else {
+      // Restore body position and scroll
+      const scrollY = parseInt(document.body.style.top || '0') * -1;
       document.body.classList.remove('mobile-menu-open');
+      document.body.style.paddingRight = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, scrollY);
     }
     
     return () => {
       document.body.classList.remove('mobile-menu-open');
+      document.body.style.paddingRight = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
     };
   }, [isMenuOpen]);
   
@@ -98,9 +105,7 @@ export function Navbar() {
     
     // Debounce search for mobile
     const searchTimeout = setTimeout(() => {
-      const filteredResults = mockSearchResults.filter(result =>
-        result.title.toLowerCase().includes(query.toLowerCase())
-      );
+      const filteredResults = searchContent(query);
       setSearchResults(filteredResults);
       setIsSearching(false);
       setShowSearchResults(true);
@@ -122,6 +127,22 @@ export function Navbar() {
     setShowSearchResults(false);
     if (searchInputRef.current) {
       searchInputRef.current.focus();
+    }
+  };
+  
+  // Function to get the appropriate icon for each result type
+  const getResultIcon = (type: string) => {
+    switch (type) {
+      case 'course':
+        return <BookOpen className="h-4 w-4 text-indigo-400" />;
+      case 'resource':
+        return <FileText className="h-4 w-4 text-violet-400" />;
+      case 'community':
+        return <Users className="h-4 w-4 text-emerald-400" />;
+      case 'playground':
+        return <Code className="h-4 w-4 text-amber-400" />;
+      default:
+        return <Globe className="h-4 w-4 text-blue-400" />;
     }
   };
   
@@ -174,13 +195,14 @@ export function Navbar() {
                   placeholder="Search..."
                   value={searchQuery}
                   onChange={handleSearchChange}
-                  className={`pl-9 pr-9 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent w-56 ${!isMobileDevice ? 'transition-all duration-300 focus:w-64' : ''}`}
+                  className={`pl-9 pr-9 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent w-56 ${!isMobileDevice ? 'transition-all duration-300 focus:w-72' : ''}`}
                 />
                 {searchQuery && (
                   <button 
                     type="button"
                     onClick={clearSearch}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-800/50"
+                    aria-label="Clear search"
                   >
                     <X className={`h-4 w-4 text-gray-400 ${!isMobileDevice ? 'hover:text-white transition-colors duration-300' : ''}`} />
                   </button>
@@ -208,27 +230,17 @@ export function Navbar() {
                         key={result.id}
                         to={result.url} 
                         onClick={handleLinkClick}
-                        className={`flex items-center px-3 py-2 ${!isMobileDevice ? 'hover:bg-gray-800/50 transition-all duration-200' : ''}`}
+                        className={`flex items-center px-3 py-3 ${!isMobileDevice ? 'hover:bg-gray-800/50 transition-all duration-200' : ''} border-b border-gray-800/20 last:border-b-0`}
                       >
                         <div className="mr-3">
-                          {result.type === 'resource' && (
-                            <div className="p-1 rounded-md bg-violet-500/20 text-violet-400">
-                              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                              </svg>
-                            </div>
-                          )}
-                          {result.type === 'community' && (
-                            <div className="p-1 rounded-md bg-emerald-500/20 text-emerald-400">
-                              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                              </svg>
-                            </div>
-                          )}
+                          <div className={`p-1.5 rounded-md ${result.type === 'course' ? 'bg-indigo-500/20' : result.type === 'resource' ? 'bg-violet-500/20' : result.type === 'community' ? 'bg-emerald-500/20' : 'bg-amber-500/20'}`}>
+                            {getResultIcon(result.type)}
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm text-white font-medium">{result.title}</p>
-                          <p className="text-xs text-gray-400 capitalize">{result.type}</p>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-white font-medium truncate">{result.title}</p>
+                          <p className="text-xs text-gray-400 line-clamp-1">{result.description}</p>
+                          <p className="text-xs text-gray-500 capitalize mt-0.5">{result.type}</p>
                         </div>
                       </Link>
                     ))}
@@ -306,23 +318,36 @@ export function Navbar() {
           </div>
         </div>
         
-        {/* Mobile menu - simplified */}
+        {/* Mobile menu overlay */}
         {isMenuOpen && (
-          <div ref={menuRef} className={`lg:hidden py-3 border-t border-gray-800/20 ${!isMobileDevice ? 'animate-fadeIn' : ''} mobile-menu bg-gradient-to-r from-black/95 via-gray-950/95 to-black/95 backdrop-blur-xl`}>
-            <div className="flex flex-col space-y-1">
+          <>
+            <div className="mobile-menu-overlay" onClick={() => setIsMenuOpen(false)}></div>
+            <div ref={menuRef} className={`lg:hidden py-6 border-t border-gray-800/30 ${!isMobileDevice ? 'animate-fadeIn' : ''} mobile-menu bg-black`}>
+            <div className="flex flex-col space-y-3 px-2">
               {['Courses', 'Playground', 'Resources', 'Community'].map((item) => (
                 <Link 
                   key={item}
                   to={`/${item.toLowerCase()}`} 
                   onClick={handleLinkClick} 
-                  className={`px-4 py-3 text-gray-200 ${!isMobileDevice ? 'hover:text-white hover:bg-gray-800/50 transition-all duration-200' : ''} rounded-lg touch-target`}
+                  className={`px-4 py-3.5 text-gray-200 ${!isMobileDevice ? 'hover:text-white hover:bg-gray-900 transition-all duration-200' : ''} rounded-xl flex items-center touch-target bg-black border border-gray-800/30`}
                 >
+                  <div className="mr-3 p-1.5 rounded-md bg-gradient-to-br from-indigo-600/20 to-violet-600/20 backdrop-blur-sm">
+                    {item === 'Courses' && <BookOpen className="h-4 w-4 text-indigo-400" />}
+                    {item === 'Playground' && <Code className="h-4 w-4 text-violet-400" />}
+                    {item === 'Resources' && <svg className="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>}
+                    {item === 'Community' && <Users className="h-4 w-4 text-violet-400" />}
+                  </div>
                   <span className="font-medium">{item}</span>
+                  <svg className="ml-auto h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </Link>
               ))}
               
               {/* Mobile search */}
-              <div className="px-4 py-2 mt-1">
+              <div className="px-4 py-4 mt-4 bg-black rounded-xl mx-2 border border-gray-800/30 shadow-lg">
                 <form onSubmit={handleSearchSubmit}>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -331,55 +356,31 @@ export function Navbar() {
                       placeholder="Search..."
                       value={searchQuery}
                       onChange={handleSearchChange}
-                      className={`w-full pl-9 pr-9 py-1.5 rounded-md bg-slate-800/80 border border-slate-700/80 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent ${!isMobileDevice ? 'transition-all duration-300' : ''}`}
+                      className={`w-full pl-9 pr-9 py-2.5 rounded-lg bg-slate-800/80 border border-slate-700/80 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent ${!isMobileDevice ? 'transition-all duration-300' : ''}`}
                     />
-                    {searchQuery && (
-                      <button 
-                        type="button"
-                        onClick={clearSearch}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                      >
-                        <X className={`h-4 w-4 text-gray-400 ${!isMobileDevice ? 'hover:text-white transition-colors duration-300' : ''}`} />
-                      </button>
-                    )}
                   </div>
                 </form>
                 
                 {/* Mobile search results */}
                 {showSearchResults && searchResults.length > 0 && (
-                  <div className={`mt-2 bg-gray-900/80 rounded-md border border-gray-800/30 ${!isMobileDevice ? 'animate-fadeIn' : ''}`}>
+                  <div className={`mt-3 bg-gray-900/80 rounded-lg border border-gray-800/30 ${!isMobileDevice ? 'animate-fadeIn' : ''}`}>
                     <div className="max-h-60 overflow-y-auto">
                       {searchResults.map((result) => (
                         <Link 
                           key={result.id}
                           to={result.url} 
                           onClick={handleLinkClick}
-                          className={`flex items-center px-3 py-2 ${!isMobileDevice ? 'hover:bg-gray-800/50 transition-all duration-200' : ''} border-b border-gray-800/20 last:border-b-0`}
+                          className={`flex items-center px-3 py-3 ${!isMobileDevice ? 'hover:bg-gray-800/50 transition-all duration-200' : ''} border-b border-gray-800/20 last:border-b-0`}
                         >
                           <div className="mr-3">
-                            {result.type === 'course' && (
-                              <div className="p-1 rounded-md bg-indigo-500/20 text-indigo-400">
-                                <BookOpen className="h-4 w-4" />
-                              </div>
-                            )}
-                            {result.type === 'resource' && (
-                              <div className="p-1 rounded-md bg-violet-500/20 text-violet-400">
-                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                              </div>
-                            )}
-                            {result.type === 'community' && (
-                              <div className="p-1 rounded-md bg-emerald-500/20 text-emerald-400">
-                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                </svg>
-                              </div>
-                            )}
+                            <div className={`p-1.5 rounded-md ${result.type === 'course' ? 'bg-indigo-500/20' : result.type === 'resource' ? 'bg-violet-500/20' : result.type === 'community' ? 'bg-emerald-500/20' : 'bg-amber-500/20'}`}>
+                            {getResultIcon(result.type)}
+                          </div>
                           </div>
                           <div>
                             <p className="text-sm text-white font-medium">{result.title}</p>
-                            <p className="text-xs text-gray-400 capitalize">{result.type}</p>
+                            <p className="text-xs text-gray-400 line-clamp-1">{result.description}</p>
+                            <p className="text-xs text-gray-500 capitalize mt-0.5">{result.type}</p>
                           </div>
                         </Link>
                       ))}
@@ -402,6 +403,7 @@ export function Navbar() {
               </div>
             </div>
           </div>
+          </>
         )}
       </div>  
     </nav>

@@ -1,5 +1,43 @@
 /* Navbar.css - Optimized for performance */
 
+/* Mobile menu overlay styles */
+body.mobile-menu-open {
+  overflow: hidden;
+}
+
+.mobile-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  border-bottom: 1px solid rgba(75, 85, 99, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS devices */
+  overscroll-behavior: contain; /* Prevent scroll chaining */
+}
+
+/* Mobile menu overlay background */
+.mobile-menu-overlay {
+  position: fixed;
+  top: 4rem; /* Height of navbar */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.95);
+  z-index: 40;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  opacity: 0;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* Disable animations on mobile */
 @media (max-width: 768px) {
   .animate-fadeIn,
