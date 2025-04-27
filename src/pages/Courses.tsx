@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Filter, ChevronDown, Clock, Users, Star, BookOpen } from 'lucide-react';
-import { isMobile, isSlowDevice, useReducedMotion } from '../utils/deviceDetection';
+import { isSlowDevice, useReducedMotion } from '../utils/deviceDetection';
+import { useTheme } from '../context/useTheme';
 import type { Course } from '../types';
 
 const COURSES: Course[] = [
@@ -88,13 +89,14 @@ export function Courses() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [shouldReduceMotion, setShouldReduceMotion] = useState(false);
-  const [isMobileDevice, setIsMobileDevice] = useState(false);
+  
+  // Get theme context
+  const { theme } = useTheme();
 
   // Use the proper React Hook at the component level
   const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
-    setIsMobileDevice(isMobile());
     setShouldReduceMotion(isSlowDevice() || prefersReducedMotion);
   }, [prefersReducedMotion]);
 
@@ -113,36 +115,24 @@ export function Courses() {
       <section className="relative overflow-hidden pt-24 pb-16" style={{ background: 'var(--header-bg)' }}>
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa')] opacity-10 bg-cover bg-center"></div>
         {/* Static gradient background on mobile, animated on desktop */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/10 via-violet-950/5 to-transparent pointer-events-none"></div>
-
-        {/* Simplified blobs for mobile */}
-        {!isMobileDevice && !shouldReduceMotion && (
-          <>
-            <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob"></div>
-            <div className="absolute -bottom-8 left-20 w-72 h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animate-delay-400"></div>
-          </>
-        )}
-
-        <div className="absolute inset-0 bg-[url('/images/courses-bg.webp')] opacity-10 bg-cover bg-center" aria-hidden="true" role="presentation"></div>
-        <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center md:text-left max-w-3xl">
-            <div className={`inline-flex items-center px-4 py-2 rounded-full bg-indigo-500/30 backdrop-blur-sm border border-indigo-400/50 text-indigo-100 mb-6 ${!shouldReduceMotion ? 'animate-fade-in' : ''}`}>
+            <div className={`inline-flex items-center px-4 py-2 rounded-full ${theme === 'dark' ? 'bg-indigo-500/30 border border-indigo-400/50 text-indigo-100' : 'bg-indigo-500/20 border border-indigo-400/30 text-indigo-700'} backdrop-blur-sm mb-6 ${!shouldReduceMotion ? 'animate-fade-in' : ''}`}>
               <span className={`flex h-2 w-2 rounded-full bg-indigo-300 ${!shouldReduceMotion ? 'animate-pulse' : ''} mr-2`}></span>
               <span className="text-sm font-medium">Expert-led curriculum</span>
             </div>
-            <h1 className={`text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight ${!shouldReduceMotion ? 'animate-fade-in animate-delay-100' : ''} drop-shadow-lg`}>Explore Our Courses</h1>
-            <p className={`text-xl text-indigo-200/80 max-w-3xl ${!shouldReduceMotion ? 'animate-fade-in animate-delay-200' : ''}`}>Discover comprehensive courses designed to help you master new skills and advance your career.</p>
+            <h1 className={`text-4xl md:text-5xl font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'} mb-4 tracking-tight ${!shouldReduceMotion ? 'animate-fade-in animate-delay-100' : ''} drop-shadow-lg`}>Explore Our Courses</h1>
+            <p className={`text-xl ${theme === 'dark' ? 'text-indigo-200/80' : 'text-slate-700'} max-w-3xl ${!shouldReduceMotion ? 'animate-fade-in animate-delay-200' : ''}`}>Discover comprehensive courses designed to help you master new skills and advance your career.</p>
           </div>
         </div>
       </section>
 
       {/* Search Bar */}
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 -mt-12 sm:-mt-16 relative z-10">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 mt-4 sm:-mt-8 md:-mt-10 lg:-mt-8 relative z-10">
         <div className="relative group">
           <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl opacity-20 group-hover:opacity-40 blur transition-all duration-300"></div>
-          <div className="relative bg-gray-900/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-gray-800/40">
+          <div className={`relative ${theme === 'dark' ? 'bg-gray-900/90 border border-gray-800/40' : 'bg-white/90 border border-slate-200/60'} backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden`}>
             <div className="flex flex-col sm:flex-row sm:items-stretch">
               <div className="relative flex-grow group/input">
                 <div className="absolute left-5 top-1/2 -translate-y-1/2 text-indigo-400 group-focus-within/input:text-indigo-300 transition-colors duration-300">
@@ -150,10 +140,10 @@ export function Courses() {
                 </div>
                 <input
                   type="text"
-                  placeholder="Search courses..."
+                  placeholder="Search for courses..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-14 pr-12 py-5 bg-gray-900/80 text-white focus:outline-none focus:bg-gray-900 placeholder-gray-400 border-b sm:border-b-0 sm:border-r border-gray-800/40 transition-all duration-300"
+                  className={`w-full py-4 pl-12 pr-4 bg-transparent ${theme === 'dark' ? 'text-white placeholder-gray-400' : 'text-slate-800 placeholder-slate-500'} focus:outline-none focus:ring-0 border-0 text-base`}
                 />
                 {searchQuery && (
                   <button 
@@ -170,7 +160,9 @@ export function Courses() {
               </div>
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center justify-center px-6 py-5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 font-medium sm:w-auto w-full group/btn relative overflow-hidden"
+                className={`flex items-center justify-center px-5 py-4 ${theme === 'dark' ? 'bg-indigo-600 hover:bg-indigo-700 border-l border-indigo-700/50' : 'bg-indigo-600 hover:bg-indigo-700 border-l border-indigo-500/30'} text-white transition-colors duration-300 group`}
+                aria-expanded={showFilters}
+                aria-controls="filters-panel"
               >
                 <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0 group-hover/btn:opacity-100 group-hover/btn:animate-pulse-slow transition-opacity"></span>
                 <span className="relative flex items-center">
@@ -185,93 +177,92 @@ export function Courses() {
 
       {/* Filters */}
       {showFilters && (
-        <div className="bg-gray-900/90 backdrop-blur-lg border-y border-gray-800/30 shadow-xl mt-6 transition-all duration-500 animate-fadeIn">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-white flex items-center">
-                <Filter className="h-5 w-5 mr-2 text-indigo-400" />
-                Filter Courses
-              </h3>
-              <button 
-                onClick={() => setShowFilters(false)}
-                className="p-2 rounded-full hover:bg-gray-800/70 text-gray-400 hover:text-white transition-all duration-300"
-                aria-label="Close filters"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
+        <div id="filters-panel" className={`${showFilters ? 'max-h-96' : 'max-h-0'} overflow-hidden transition-all duration-300 ease-in-out ${theme === 'dark' ? 'bg-gray-900/90 border-t border-gray-800/40' : 'bg-slate-100/90 border-t border-slate-200/60'} backdrop-blur-sm`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-white flex items-center">
+              <Filter className="h-5 w-5 mr-2 text-indigo-400" />
+              Filter Courses
+            </h3>
+            <button 
+              onClick={() => setShowFilters(false)}
+              className="p-2 rounded-full hover:bg-gray-800/70 text-gray-400 hover:text-white transition-all duration-300"
+              aria-label="Close filters"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Category Filter */}
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-indigo-300">Category</label>
+              <div className="flex flex-wrap gap-2">
+                {['all', 'cs', 'ai'].map(category => (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                      selectedCategory === category
+                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
+                        : 'bg-gray-800/80 text-gray-300 hover:bg-gray-700/80 hover:shadow'
+                    }`}
+                  >
+                    {category === 'all' ? 'All Courses' : category === 'cs' ? 'Computer Science' : 'AI & ML'}
+                  </button>
+                ))}
+              </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Category Filter */}
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-indigo-300">Category</label>
-                <div className="flex flex-wrap gap-2">
-                  {['all', 'cs', 'ai'].map(category => (
-                    <button
-                      key={category}
-                      onClick={() => setSelectedCategory(category)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                        selectedCategory === category
-                          ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                          : 'bg-gray-800/80 text-gray-300 hover:bg-gray-700/80 hover:shadow'
-                      }`}
-                    >
-                      {category === 'all' ? 'All Courses' : category === 'cs' ? 'Computer Science' : 'AI & ML'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Level Filter */}
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-indigo-300">Experience Level</label>
+            {/* Level Filter */}
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-indigo-300">Experience Level</label>
+              <div className="relative">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg opacity-20 blur-sm"></div>
                 <div className="relative">
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg opacity-20 blur-sm"></div>
-                  <div className="relative">
-                    <select
-                      value={selectedLevel}
-                      onChange={(e) => setSelectedLevel(e.target.value)}
-                      className="w-full appearance-none bg-gray-900/90 border border-gray-700/50 text-white rounded-lg px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
-                    >
-                      {LEVELS.map(level => (
-                        <option key={level} value={level}>{level}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-indigo-400 pointer-events-none" />
-                  </div>
+                  <select
+                    value={selectedLevel}
+                    onChange={(e) => setSelectedLevel(e.target.value)}
+                    className="w-full appearance-none bg-gray-900/90 border border-gray-700/50 text-white rounded-lg px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+                  >
+                    {LEVELS.map(level => (
+                      <option key={level} value={level}>{level}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-indigo-400 pointer-events-none" />
                 </div>
               </div>
+            </div>
 
-              {/* Duration Filter */}
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-indigo-300">Course Duration</label>
+            {/* Duration Filter */}
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-indigo-300">Course Duration</label>
+              <div className="relative">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg opacity-20 blur-sm"></div>
                 <div className="relative">
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg opacity-20 blur-sm"></div>
-                  <div className="relative">
-                    <select
-                      value={selectedDuration}
-                      onChange={(e) => setSelectedDuration(e.target.value)}
-                      className="w-full appearance-none bg-gray-900/90 border border-gray-700/50 text-white rounded-lg px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
-                    >
-                      {DURATIONS.map(duration => (
-                        <option key={duration} value={duration}>{duration}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-indigo-400 pointer-events-none" />
-                  </div>
+                  <select
+                    value={selectedDuration}
+                    onChange={(e) => setSelectedDuration(e.target.value)}
+                    className="w-full appearance-none bg-gray-900/90 border border-gray-700/50 text-white rounded-lg px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+                  >
+                    {DURATIONS.map(duration => (
+                      <option key={duration} value={duration}>{duration}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-indigo-400 pointer-events-none" />
                 </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
       )}
       
-      {/* Course listings */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Results count */}
+      {/* Course Grid */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
         <div className="mb-8 flex items-center">
           <BookOpen className="h-6 w-6 text-indigo-400 mr-2" />
           <h2 className="text-2xl font-bold text-white">Found {filteredCourses.length} courses</h2>
@@ -282,7 +273,7 @@ export function Courses() {
           {filteredCourses.map(course => (
             <div key={course.id} className="group relative">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl opacity-0 group-hover:opacity-30 blur transition duration-300"></div>
-              <div className="relative bg-gray-900/50 border border-gray-800/30 rounded-xl overflow-hidden group-hover:shadow-xl group-hover:shadow-indigo-900/20 transition-all duration-300 backdrop-blur-sm">
+              <div className={`group relative rounded-xl overflow-hidden ${theme === 'dark' ? 'border border-gray-800/40 bg-gray-900/30 hover:border-gray-700/60' : 'border border-slate-200/60 bg-white hover:border-slate-300'} backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:shadow-indigo-500/10`}>
                 <div className="relative h-48 overflow-hidden">
                   <img
                     src={course.thumbnail}
