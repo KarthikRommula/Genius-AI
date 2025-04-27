@@ -1,4 +1,4 @@
-/* Navbar animations and effects */
+  /* Navbar.css */
 
 /* Fade in animation for dropdowns and mobile menu */
 @keyframes fadeIn {
@@ -12,56 +12,61 @@
   }
 }
 
-.animate-fadeIn {
-  animation: fadeIn 0.15s ease-out forwards;
+/* Slide in animation for mobile menu */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Slow pulsing animations for background blobs */
+@keyframes pulseSlow {
+  0%, 100% {
+    opacity: 0.05;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.1;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes pulseSlowAlt {
+  0%, 100% {
+    opacity: 0.05;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.08;
+    transform: scale(1.15);
+  }
 }
 
 /* Notification dot pulse effect */
-@keyframes pulse {
+@keyframes notificationPulse {
   0% {
     box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
   }
   70% {
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0);
+    box-shadow: 0 0 0 6px rgba(99, 102, 241, 0);
   }
   100% {
     box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
   }
 }
 
-.notification-pulse {
-  animation: pulse 2s infinite;
+/* Animation classes */
+.animate-fadeIn {
+  animation: fadeIn 0.15s ease-out forwards;
 }
 
-/* Slow pulsing animations for background blobs */
-@keyframes pulseSlow {
-  0% {
-    opacity: 0.05;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.08;
-    transform: scale(1.05);
-  }
-  100% {
-    opacity: 0.05;
-    transform: scale(1);
-  }
-}
-
-@keyframes pulseSlowAlt {
-  0% {
-    opacity: 0.05;
-    transform: scale(1.05);
-  }
-  50% {
-    opacity: 0.08;
-    transform: scale(1);
-  }
-  100% {
-    opacity: 0.05;
-    transform: scale(1.05);
-  }
+.animate-slideIn {
+  animation: slideIn 0.25s ease-out forwards;
 }
 
 .animate-pulse-slow {
@@ -69,6 +74,170 @@
 }
 
 .animate-pulse-slow-alt {
-  animation: pulseSlowAlt 8s ease-in-out infinite;
+  animation: pulseSlowAlt 10s ease-in-out infinite;
   animation-delay: 4s;
+}
+
+.notification-pulse {
+  animation: notificationPulse 2s infinite;
+}
+
+/* Ensure proper stacking context */
+nav {
+  isolation: isolate;
+}
+
+/* Proper click area for dropdown */
+.relative:has([aria-expanded="true"]) {
+  z-index: 10;
+}
+
+/* Custom scrollbar for dropdown */
+.absolute::-webkit-scrollbar {
+  width: 6px;
+}
+
+.absolute::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.absolute::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.absolute::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Mobile menu transitions */
+@media (max-width: 1023px) {
+  .mobile-menu-enter {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  
+  .mobile-menu-enter-active {
+    transform: translateY(0);
+    opacity: 1;
+    transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+  }
+  
+  .mobile-menu-exit {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  
+  .mobile-menu-exit-active {
+    transform: translateY(-10px);
+    opacity: 0;
+    transition: transform 0.2s ease-in, opacity 0.2s ease-in;
+  }
+}
+
+/* Ensure Tailwind classes work properly */
+@media (max-width: 1023px) {
+  .lg\:hidden {
+    display: block !important;
+  }
+  
+  .lg\:flex {
+    display: none !important;
+  }
+}
+
+/* Prevent body scroll when mobile menu is open */
+body.mobile-menu-open {
+  overflow: hidden;
+}
+
+/* Smooth transitions for all interactive elements */
+button, 
+a, 
+input {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Fix for mobile Safari input zoom issue */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="search"] {
+    font-size: 16px;
+  }
+}
+
+/* Ensure the mobile menu has proper z-index and background */
+.mobile-menu {
+  position: fixed;
+  top: 64px; /* Height of navbar */
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.95);
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.95), rgba(9, 9, 11, 0.95), rgba(0, 0, 0, 0.95));
+  z-index: 40;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+}
+
+/* Add backdrop blur to mobile menu */
+@supports (backdrop-filter: blur(12px)) {
+  .mobile-menu {
+    backdrop-filter: blur(12px);
+  }
+}
+
+/* Ensure mobile menu items are visible */
+.mobile-menu a {
+  display: block;
+  opacity: 1;
+}
+
+/* Improve touch targets on mobile */
+@media (max-width: 768px) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Ensure navbar is not too tall on small screens */
+  nav {
+    height: auto;
+    min-height: 56px;
+  }
+  
+  /* Improve mobile search experience */
+  .mobile-search-container {
+    position: relative;
+    width: 100%;
+  }
+  
+  /* Ensure dropdown menus don't overflow screen */
+  .dropdown-menu {
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+}
+
+/* Extra small device adjustments */
+@media (max-width: 375px) {
+  .navbar-logo-text {
+    font-size: 1.25rem;
+  }
+  
+  .navbar-container {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+
+/* Landscape mode adjustments for mobile */
+@media (max-height: 480px) and (orientation: landscape) {
+  .mobile-menu {
+    max-height: 80vh;
+    overflow-y: auto;
+  }
 }
