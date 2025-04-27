@@ -9,6 +9,9 @@ import { Community } from "./pages/Community";
 import { Register } from "./pages/Register";
 import { Resources } from "./pages/Resources";
 
+// Import global styles
+import "./styles/global.css";
+
 function App() {  
   return (
     <Router>

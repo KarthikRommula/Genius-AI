@@ -1,0 +1,235 @@
+/* Global styles and custom scrollbar */
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(8, 8, 12, 0.98);
+  border-left: 1px solid rgba(99, 102, 241, 0.15);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.7), rgba(139, 92, 246, 0.7), rgba(167, 139, 250, 0.7));
+  border-radius: 20px;
+  border: 4px solid rgba(8, 8, 12, 0.98);
+  background-clip: padding-box;
+  min-height: 50px;
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.15);
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.9), rgba(139, 92, 246, 0.9), rgba(167, 139, 250, 0.9));
+  border: 3px solid rgba(8, 8, 12, 0.98);
+  background-clip: padding-box;
+  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.25), 0 0 10px rgba(99, 102, 241, 0.3);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.9), rgba(124, 58, 237, 0.9), rgba(139, 92, 246, 0.9));
+  border: 3px solid rgba(8, 8, 12, 0.98);
+}
+
+::-webkit-scrollbar-corner {
+  background: rgba(8, 8, 12, 0.98);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Scrollbar buttons */
+::-webkit-scrollbar-button {
+  display: none;
+}
+
+/* Firefox scrollbar */
+html {
+  scrollbar-color: rgba(139, 92, 246, 0.7) rgba(8, 8, 12, 0.98);
+  scrollbar-width: thin;
+}
+
+/* For Edge and IE */
+body {
+  -ms-overflow-style: none;
+}
+
+/* Custom scrollbar for textareas and select elements */
+textarea::-webkit-scrollbar,
+select::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+textarea::-webkit-scrollbar-thumb,
+select::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.6), rgba(139, 92, 246, 0.6));
+  border: 2px solid rgba(8, 8, 12, 0.98);
+  border-radius: 10px;
+}
+
+/* Global animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Subtle hover lift effect */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.3);
+}
+
+/* Gradient text effect */
+.gradient-text {
+  background: linear-gradient(to right, #fff, #a5b4fc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Glass card effect */
+.glass-card {
+  background: rgba(15, 15, 20, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* Subtle background pattern */
+.subtle-pattern {
+  background-image: radial-gradient(rgba(99, 102, 241, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.05;
+    filter: blur(20px);
+  }
+  50% {
+    opacity: 0.1;
+    filter: blur(25px);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 6s ease-in-out infinite;
+}
+
+.animation-delay-300 {
+  animation-delay: 0.3s;
+}
+
+.animation-delay-500 {
+  animation-delay: 0.5s;
+}
+
+.animation-delay-700 {
+  animation-delay: 0.7s;
+}
+
+/* Stats counter animation */
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-count-up {
+  animation: countUp 0.8s ease-out forwards;
+}
+
+.animate-count-up-delay-1 {
+  animation: countUp 0.8s ease-out 0.1s forwards;
+  opacity: 0;
+}
+
+.animate-count-up-delay-2 {
+  animation: countUp 0.8s ease-out 0.2s forwards;
+  opacity: 0;
+}
+
+.animate-count-up-delay-3 {
+  animation: countUp 0.8s ease-out 0.3s forwards;
+  opacity: 0;
+}
+
+/* Responsive typography */
+@media (max-width: 640px) {
+  h1, .h1 {
+    font-size: 2.25rem !important;
+    line-height: 2.5rem !important;
+  }
+  
+  h2, .h2 {
+    font-size: 1.875rem !important;
+    line-height: 2.25rem !important;
+  }
+  
+  h3, .h3 {
+    font-size: 1.5rem !important;
+    line-height: 2rem !important;
+  }
+  
+  p.lead {
+    font-size: 1.125rem !important;
+    line-height: 1.75rem !important;
+  }
+}
+
+/* Improved focus styles for accessibility */
+:focus-visible {
+  outline: 2px solid rgba(99, 102, 241, 0.6);
+  outline-offset: 2px;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+/* Better text rendering */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Prevent long words from breaking layout */
+p, h1, h2, h3, h4, h5, h6, li, td, th {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  -ms-word-break: break-all;
+  word-break: break-word;
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+
+/* Better mobile tap targets */
+@media (max-width: 640px) {
+  button, 
+  a.btn,
+  input[type="button"],
+  input[type="submit"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
