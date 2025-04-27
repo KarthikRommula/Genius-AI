@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { BookOpen, Code, Video, Users, Award, Brain, ArrowRight, Star, Check, Target, Medal, Globe } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { BookOpen, Code, Video, Users, Award, Brain, ArrowRight, Star, Check, Target, Medal, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { isMobile, isSlowDevice, useReducedMotion } from '../utils/deviceDetection';
 
@@ -62,6 +62,8 @@ export function Home() {
   // State for controlling animations and device-specific behavior
   const [shouldReduceMotion, setShouldReduceMotion] = useState(false);
   const [isMobileDevice, setIsMobileDevice] = useState(false);
+  const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
+  const testimonialSliderRef = useRef<HTMLDivElement>(null);
   
   // Use the proper React Hook at the component level
   const prefersReducedMotion = useReducedMotion();
@@ -73,9 +75,9 @@ export function Home() {
   }, [prefersReducedMotion]);
   
   return (
-    <main className="min-h-screen bg-black">
+    <main className="min-h-screen" style={{ backgroundColor: 'var(--background)' }}>
       {/* Hero Section */}
-      <section id="hero" className="relative bg-gradient-to-br from-black via-gray-900/95 to-gray-900/90 overflow-hidden">
+      <section id="hero" className="relative overflow-hidden" style={{ background: 'var(--header-bg)' }}>
         <a href="#courses" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-md">
           Skip to main content
         </a>
@@ -160,7 +162,7 @@ export function Home() {
           )}
           
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 relative z-10">
-            <h2 id="stats-bar-heading" className="text-3xl font-bold mb-4 text-white">Our Impact</h2>
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-y-10 gap-x-6 md:gap-x-8 lg:gap-x-12">
               {STATS.map((stat, index) => (
                 <div key={index} className={`text-center group ${!shouldReduceMotion ? (index === 0 ? 'animate-count-up-delay-0' : index === 1 ? 'animate-count-up-delay-1' : index === 2 ? 'animate-count-up-delay-2' : 'animate-count-up-delay-3') : ''}`}>
@@ -198,8 +200,8 @@ export function Home() {
                 title: 'HD Video Lectures',
                 description: 'Crystal-clear explanations from world-class professors with interactive transcripts',
                 features: ['4K quality videos', 'Downloadable content', 'Closed captions'],
-                gradient: 'from-blue-500 to-indigo-600',
-                bgHover: 'from-blue-500/10 to-purple-500/10',
+                gradient: 'from-sky-400 to-blue-500',
+                bgHover: 'from-sky-400/10 to-blue-400/10',
                 iconColor: 'text-blue-400'
               },
               {
@@ -207,8 +209,8 @@ export function Home() {
                 title: 'Live Coding Labs',
                 description: 'Interactive coding environments with AI-powered feedback and assistance',
                 features: ['Real-time compilation', 'AI code analysis', 'Instant feedback'],
-                gradient: 'from-purple-500 to-pink-600',
-                bgHover: 'from-purple-500/10 to-pink-500/10',
+                gradient: 'from-violet-400 to-fuchsia-500',
+                bgHover: 'from-violet-400/10 to-fuchsia-400/10',
                 iconColor: 'text-purple-400'
               },
               {
@@ -216,8 +218,8 @@ export function Home() {
                 title: 'AI-Powered Learning',
                 description: 'Personalized learning paths that adapt to your pace and style',
                 features: ['Adaptive learning', 'Smart recommendations', 'Progress tracking'],
-                gradient: 'from-cyan-500 to-blue-600',
-                bgHover: 'from-cyan-500/10 to-blue-500/10',
+                gradient: 'from-cyan-400 to-sky-500',
+                bgHover: 'from-cyan-400/10 to-sky-400/10',
                 iconColor: 'text-cyan-400'
               },
               {
@@ -225,8 +227,8 @@ export function Home() {
                 title: 'Peer Collaboration',
                 description: 'Study groups, discussion forums, and real-time collaboration tools',
                 features: ['Study groups', 'Live discussions', 'Project collaboration'],
-                gradient: 'from-green-500 to-emerald-600',
-                bgHover: 'from-green-500/10 to-emerald-500/10',
+                gradient: 'from-emerald-400 to-teal-500',
+                bgHover: 'from-emerald-400/10 to-teal-400/10',
                 iconColor: 'text-green-400'
               },
               {
@@ -234,8 +236,8 @@ export function Home() {
                 title: 'Industry Certifications',
                 description: 'Earn recognized certificates to showcase your expertise',
                 features: ['Verified certificates', 'Industry recognized', 'LinkedIn integration'],
-                gradient: 'from-yellow-500 to-orange-600',
-                bgHover: 'from-yellow-500/10 to-orange-500/10',
+                gradient: 'from-amber-400 to-yellow-500',
+                bgHover: 'from-amber-400/10 to-yellow-400/10',
                 iconColor: 'text-yellow-400'
               },
               {
@@ -243,28 +245,45 @@ export function Home() {
                 title: 'Rich Resources',
                 description: 'Comprehensive study materials, notes, and project templates',
                 features: ['Study materials', 'Cheat sheets', 'Project templates'],
-                gradient: 'from-rose-500 to-pink-600',
-                bgHover: 'from-rose-500/10 to-pink-500/10',
+                gradient: 'from-rose-400 to-pink-500',
+                bgHover: 'from-rose-400/10 to-pink-400/10',
                 iconColor: 'text-rose-400'
               }
             ].map((feature, index) => (
               <div 
                 key={index} 
-                className={`group relative p-8 rounded-3xl bg-gradient-to-br from-black/80 to-gray-900/40 backdrop-blur-xl border border-gray-800/30 ${!isMobileDevice ? 'hover:border-blue-500/50 hover:-translate-y-2' : ''} transition-all duration-500`}
+                className={`group relative p-8 rounded-3xl bg-gradient-to-br from-black/80 to-gray-900/40 backdrop-blur-xl border border-gray-800/30 ${!isMobileDevice ? 'hover:border-sky-400/70 hover:-translate-y-2 hover:shadow-xl hover:shadow-sky-400/20' : ''} transition-all duration-500`}
               >
                 {!isMobileDevice && (
-                  <div className={`absolute inset-0 bg-gradient-to-br ${feature.bgHover} rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
+                  <div className={`absolute inset-0 bg-gradient-to-br ${feature.iconColor === 'text-blue-400' ? 'from-sky-400/10 to-blue-300/5' : 
+                  feature.iconColor === 'text-purple-400' ? 'from-violet-400/10 to-fuchsia-300/5' : 
+                  feature.iconColor === 'text-cyan-400' ? 'from-cyan-400/10 to-sky-300/5' : 
+                  feature.iconColor === 'text-green-400' ? 'from-emerald-400/10 to-teal-300/5' : 
+                  feature.iconColor === 'text-yellow-400' ? 'from-amber-400/10 to-yellow-300/5' : 
+                  'from-rose-400/10 to-pink-300/5'} rounded-3xl opacity-0 group-hover:opacity-100 transition-all duration-700 ease-in-out`}></div>
                 )}
                 <div className="relative z-10">
-                  <div className={`h-16 w-16 rounded-2xl bg-gradient-to-br ${feature.gradient} p-3 mb-8 ${!isMobileDevice ? 'group-hover:scale-110' : ''} transition-transform duration-500 shadow-lg`}>
+                  <div className={`h-16 w-16 rounded-2xl bg-gradient-to-br ${feature.gradient} p-3 mb-8 ${!isMobileDevice ? 'group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-sky-400/20' : ''} transition-all duration-500 shadow-lg`}>
                     <feature.icon className="w-full h-full text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-4">{feature.title}</h3>
+                  <h3 className={`text-2xl font-bold text-white mb-4 ${!isMobileDevice ? 
+                  feature.iconColor === 'text-blue-400' ? 'group-hover:text-sky-300' : 
+                  feature.iconColor === 'text-purple-400' ? 'group-hover:text-violet-300' : 
+                  feature.iconColor === 'text-cyan-400' ? 'group-hover:text-cyan-300' : 
+                  feature.iconColor === 'text-green-400' ? 'group-hover:text-emerald-300' : 
+                  feature.iconColor === 'text-yellow-400' ? 'group-hover:text-amber-300' : 
+                  'group-hover:text-rose-300' : ''} transition-colors duration-300`}>{feature.title}</h3>
                   <p className="text-gray-300 leading-relaxed mb-6">{feature.description}</p>
                   <ul className="space-y-3">
                     {feature.features.map((item, i) => (
-                      <li key={i} className="flex items-center text-gray-400">
-                        <Check className={`w-5 h-5 ${feature.iconColor} mr-3`} />
+                      <li key={i} className={`flex items-center text-gray-400 ${!isMobileDevice ? 'group-hover:text-gray-200' : ''} transition-colors duration-300`}>
+                        <Check className={`w-5 h-5 ${feature.iconColor} mr-3 ${!isMobileDevice ? 
+                        feature.iconColor === 'text-blue-400' ? 'group-hover:text-sky-300 group-hover:scale-110' : 
+                        feature.iconColor === 'text-purple-400' ? 'group-hover:text-violet-300 group-hover:scale-110' : 
+                        feature.iconColor === 'text-cyan-400' ? 'group-hover:text-cyan-300 group-hover:scale-110' : 
+                        feature.iconColor === 'text-green-400' ? 'group-hover:text-emerald-300 group-hover:scale-110' : 
+                        feature.iconColor === 'text-yellow-400' ? 'group-hover:text-amber-300 group-hover:scale-110' : 
+                        'group-hover:text-rose-300 group-hover:scale-110' : ''} transition-all duration-300`} />
                         {item}
                       </li>
                     ))}
@@ -410,81 +429,149 @@ export function Home() {
             <p className="text-xl text-indigo-200/80 max-w-2xl mx-auto">Join thousands of satisfied learners who've transformed their careers with our comprehensive courses</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                quote: "Genius transformed my understanding of complex algorithms. The interactive labs make learning both fun and effective.",
-                name: "Rahul Sharma",
-                role: "CS Student, IIT Delhi",
-                avatar: "/images/testimonials/user1.webp",
-                gradientId: "grad1",
-                gradientColors: ["#6366f1", "#a21caf"],
-                cardColor: "indigo"
-              },
-              {
-                quote: "The AI-powered feedback helped me identify gaps in my knowledge. I've improved drastically in just 3 months.",
-                name: "Priya Kapoor",
-                role: "ECE Student, BITS Pilani",
-                avatar: "/images/testimonials/user2.webp",
-                gradientId: "grad2",
-                gradientColors: ["#a21caf", "#6366f1"],
-                cardColor: "purple"
-              },
-              {
-                quote: "The community support is amazing. I found study partners and mentors who helped me excel in my courses.",
-                name: "Amit Verma",
-                role: "ME Student, NIT Trichy",
-                avatar: "/images/testimonials/user3.webp",
-                gradientId: "grad3",
-                gradientColors: ["#ec4899", "#6366f1"],
-                cardColor: "pink"
-              }
-            ].map((testimonial, index) => (
+          {/* Modern testimonial slider with enhanced UI */}
+          <div className="relative max-w-6xl mx-auto px-2 sm:px-6">
+            {/* Main slider container with minimal design */}
+            <div className="relative overflow-hidden rounded-lg bg-black/20 p-2 sm:p-4">
+              {/* Clean design without decorative elements */}
+              
+              {/* Slider track */}
               <div 
-                key={index} 
-                className={`relative rounded-3xl p-10 ${!isMobileDevice ? 'transition-transform duration-500 hover:scale-105' : ''} group overflow-hidden bg-black/60 backdrop-blur-xl border ${testimonial.cardColor === 'indigo' ? 'border-indigo-500/20' : testimonial.cardColor === 'purple' ? 'border-purple-500/20' : 'border-pink-500/20'} shadow-xl`}
+                ref={testimonialSliderRef}
+                className="overflow-hidden relative rounded-lg"
               >
-                {!isMobileDevice && (
-                  <div className="absolute -top-8 -left-8 opacity-10 group-hover:opacity-30 transition-all duration-500">
-                    <svg width="80" height="80" fill="none">
-                      <circle cx="40" cy="40" r="40" fill={`url(#${testimonial.gradientId})`} />
-                      <defs>
-                        <linearGradient id={testimonial.gradientId} x1="0" y1="0" x2="80" y2="80" gradientUnits="userSpaceOnUse">
-                          <stop stopColor={testimonial.gradientColors[0]}/>
-                          <stop offset="1" stopColor={testimonial.gradientColors[1]}/>
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                  </div>
-                )}
-                <div className="flex items-center mb-6 relative z-10">
-                  <div className={`p-2 rounded-lg ${testimonial.cardColor === 'indigo' ? 'bg-indigo-500/20' : testimonial.cardColor === 'purple' ? 'bg-purple-500/20' : 'bg-pink-500/20'} backdrop-blur-sm mr-3`}>
-                    <svg className={`${testimonial.cardColor === 'indigo' ? 'text-indigo-300' : testimonial.cardColor === 'purple' ? 'text-purple-300' : 'text-pink-300'} w-6 h-6`} fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M7.17 6.17A5.001 5.001 0 0 0 2 11.5C2 15.09 6.47 17.82 7.17 18.22c.18.1.39.1.57 0C9.53 17.82 14 15.09 14 11.5a5.001 5.001 0 0 0-5.17-5.33zM7 13a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm10-6.83A5.001 5.001 0 0 0 16 11.5c0 3.59 4.47 6.32 5.17 6.72.18.1.39.1.57 0 .7-.4 5.17-3.13 5.17-6.72a5.001 5.001 0 0 0-5.17-5.33zM17 13a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
-                    </svg>
-                  </div>
-                  <div className="text-yellow-400 text-xl">★★★★★</div>
-                </div>
-                <p className="text-slate-300 mb-8 italic text-lg relative z-10 leading-relaxed">
-                  "{testimonial.quote}"
-                </p>
-                <div className="flex items-center relative z-10">
-                  <div className="relative mr-4">
-                    <img 
-                      src={testimonial.avatar} 
-                      alt={testimonial.name} 
-                      className={`h-16 w-16 rounded-full object-cover border-4 ${testimonial.cardColor === 'indigo' ? 'border-indigo-500/50' : testimonial.cardColor === 'purple' ? 'border-purple-500/50' : 'border-pink-500/50'} shadow-lg`}
-                      loading="lazy"
-                    />
-                    <span className="absolute -bottom-1 -right-1 block h-4 w-4 rounded-full bg-green-400 ring-2 ring-slate-800"></span>
-                  </div>
-                  <div>
-                    <div className={`font-bold ${testimonial.cardColor === 'indigo' ? 'text-indigo-300' : testimonial.cardColor === 'purple' ? 'text-purple-300' : 'text-pink-300'} text-lg`}>{testimonial.name}</div>
-                    <div className="text-sm text-slate-400">{testimonial.role}</div>
-                  </div>
+                <div 
+                  className="flex transition-transform duration-700 ease-out"
+                  style={{ transform: `translateX(-${currentTestimonialIndex * 100}%)` }}
+                >
+                  {[
+                    {
+                      quote: "Genius transformed my understanding of complex algorithms. The interactive labs make learning both fun and effective.",
+                      name: "Rahul Sharma",
+                      role: "CS Student, IIT Delhi",
+                      avatar: "/images/testimonials/user1.webp",
+                      color: "indigo"
+                    },
+                    {
+                      quote: "The AI-powered feedback helped me identify gaps in my knowledge. I've improved drastically in just 3 months.",
+                      name: "Priya Kapoor",
+                      role: "ECE Student, BITS Pilani",
+                      avatar: "/images/testimonials/user2.webp",
+                      color: "purple"
+                    },
+                    {
+                      quote: "The community support is amazing. I found study partners and mentors who helped me excel in my courses.",
+                      name: "Amit Verma",
+                      role: "ME Student, NIT Trichy",
+                      avatar: "/images/testimonials/user3.webp",
+                      color: "pink"
+                    },
+                    {
+                      quote: "The personalized learning path helped me focus on areas where I needed improvement. The results speak for themselves!",
+                      name: "Ananya Patel",
+                      role: "CSE Student, VIT Vellore",
+                      avatar: "/images/testimonials/user1.webp",
+                      color: "indigo"
+                    },
+                    {
+                      quote: "As someone who struggled with programming, Genius.AI's step-by-step approach made complex concepts accessible.",
+                      name: "Vikram Singh",
+                      role: "IT Student, IIIT Hyderabad",
+                      avatar: "/images/testimonials/user2.webp",
+                      color: "purple"
+                    },
+                    {
+                      quote: "The practice problems and real-world projects helped me build a portfolio that impressed recruiters during my internship search.",
+                      name: "Neha Gupta",
+                      role: "ECE Student, DTU Delhi",
+                      avatar: "/images/testimonials/user3.webp",
+                      color: "pink"
+                    }
+                  ].map((testimonial, index) => (
+                    <div 
+                      key={index} 
+                      className="min-w-full sm:min-w-[85%] md:min-w-[33.333%] px-1 py-1"
+                    >
+                      <div 
+                        className={`h-full bg-black/80 rounded-lg relative group overflow-hidden transition-all duration-300 ${!isMobileDevice ? 'hover:-translate-y-1' : ''}`}
+                      >
+                        {/* Color accent bar above the testimonial */}
+                        <div className={`absolute top-0 left-0 right-0 h-1 ${testimonial.color === 'indigo' ? 'bg-gradient-to-r from-indigo-600 to-indigo-400' : testimonial.color === 'purple' ? 'bg-gradient-to-r from-purple-600 to-purple-400' : 'bg-gradient-to-r from-pink-600 to-pink-400'}`}></div>
+                        
+                        <div className="p-3 sm:p-4 h-full relative z-10">
+                          {/* Minimal rating display */}
+                          <div className="flex items-center mb-2 sm:mb-3">
+                            <div className="text-yellow-400 text-xs sm:text-sm">★★★★★</div>
+                            <span className="text-gray-500 text-xs ml-1">5.0</span>
+                          </div>
+                          
+                          {/* Compact quote with clean styling */}
+                          <div className="mb-3 sm:mb-4">
+                            <p className="text-white text-xs sm:text-sm leading-relaxed">
+                              "{testimonial.quote}"
+                            </p>
+                          </div>
+                          
+                          {/* Compact user profile layout */}
+                          <div className="flex items-center pt-2 mt-2 sm:pt-3 sm:mt-3 border-t border-gray-800/30">
+                            <div className="mr-2 sm:mr-3">
+                              <img 
+                                src={testimonial.avatar} 
+                                alt={testimonial.name} 
+                                className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover"
+                                loading="lazy"
+                              />
+                            </div>
+                            <div>
+                              <div className="font-medium text-white text-xs sm:text-sm">{testimonial.name}</div>
+                              <div className="text-xs text-gray-400">{testimonial.role}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
+              
+              {/* Slim navigation arrows for mobile */}
+              <button 
+                onClick={() => setCurrentTestimonialIndex(prev => Math.max(0, prev - 1))} 
+                disabled={currentTestimonialIndex === 0}
+                className={`absolute left-0 top-1/2 -translate-y-1/2 z-20 h-full flex items-center justify-center px-1 sm:px-2 ${currentTestimonialIndex === 0 ? 'opacity-0 cursor-default' : 'opacity-70 hover:opacity-100'} transition-opacity duration-300`}
+                aria-label="Previous testimonials"
+              >
+                <span className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center bg-black/60 rounded text-white">
+                  <ChevronLeft className="w-4 h-4" />
+                </span>
+              </button>
+              
+              <button 
+                onClick={() => setCurrentTestimonialIndex(prev => Math.min(2, prev + 1))}
+                disabled={currentTestimonialIndex === 2} 
+                className={`absolute right-0 top-1/2 -translate-y-1/2 z-20 h-full flex items-center justify-center px-1 sm:px-2 ${currentTestimonialIndex === 2 ? 'opacity-0 cursor-default' : 'opacity-70 hover:opacity-100'} transition-opacity duration-300`}
+                aria-label="Next testimonials"
+              >
+                <span className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center bg-black/60 rounded text-white">
+                  <ChevronRight className="w-4 h-4" />
+                </span>
+              </button>
+            </div>
+            
+            {/* Extremely minimal pagination indicators for mobile with increased spacing */}
+            <div className="flex justify-center items-center mt-1.5 sm:mt-4 space-x-2.5 sm:space-x-3">
+              {[0, 1, 2].map(pageIndex => (
+                <button 
+                  key={pageIndex} 
+                  onClick={() => setCurrentTestimonialIndex(pageIndex)}
+                  className={`${currentTestimonialIndex === pageIndex ? 
+                    'w-1 sm:w-4 bg-gradient-to-r from-indigo-600 to-violet-600' : 
+                    'w-0.5 sm:w-1.5 bg-gray-700 hover:bg-gray-600'} 
+                    h-0.5 sm:h-1.5 rounded-full transition-all duration-300`}
+                  aria-label={`Go to testimonial page ${pageIndex + 1}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>
