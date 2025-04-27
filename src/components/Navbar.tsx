@@ -136,7 +136,7 @@ export function Navbar() {
   };
   
   return (
-    <nav className="fixed w-full z-50 bg-gradient-to-r from-black/90 via-gray-950/90 to-black/90 backdrop-blur-xl border-b border-gray-800/30 shadow-lg">
+    <nav className={`fixed w-full z-50 ${theme === 'dark' ? 'bg-gradient-to-r from-black/90 via-gray-950/90 to-black/90 border-b border-gray-800/30' : 'bg-white/90 border-b border-slate-200/60'} backdrop-blur-xl shadow-lg`}>
       {/* Simplified decorative elements for mobile */}
       {!isMobileDevice && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -153,7 +153,7 @@ export function Navbar() {
               <div className={`p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 ${!isMobileDevice ? 'group-hover:from-indigo-600 group-hover:to-violet-700 transition-all duration-300 shadow-[0_0_15px_rgba(79,70,229,0.4)] group-hover:shadow-[0_0_20px_rgba(79,70,229,0.6)] group-hover:scale-105' : ''}`}>
                 <BookOpen className="h-6 w-6 text-white" />
               </div>
-              <span className={`text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400 ${!isMobileDevice ? 'group-hover:from-indigo-300 group-hover:to-violet-300 transition-all duration-300' : ''}`}>
+              <span className={`text-2xl font-bold text-transparent bg-clip-text ${theme === 'dark' ? 'bg-gradient-to-r from-indigo-400 to-violet-400' : 'bg-gradient-to-r from-indigo-600 to-violet-600'} ${!isMobileDevice ? `${theme === 'dark' ? 'group-hover:from-indigo-300 group-hover:to-violet-300' : 'group-hover:from-indigo-500 group-hover:to-violet-500'} transition-all duration-300` : ''}`}>
                 Genius.AI
               </span>
             </Link>
@@ -163,10 +163,10 @@ export function Navbar() {
                 <Link 
                   key={item}
                   to={`/${item.toLowerCase()}`}
-                  className="px-3 py-2 text-gray-300 hover:text-white rounded-md transition-all duration-300 relative overflow-hidden group"
+                  className={`px-3 py-2 ${theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-indigo-600'} rounded-md transition-all duration-300 relative overflow-hidden group`}
                 >
                   <span className="relative z-10 font-medium">{item}</span>
-                  <span className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-gradient-to-r from-indigo-500 to-violet-500 group-hover:w-full group-hover:left-0 transition-all duration-300 opacity-0 group-hover:opacity-100"></span>
+                  <span className={`absolute bottom-0 left-1/2 w-0 h-0.5 bg-gradient-to-r from-indigo-500 to-violet-500 group-hover:w-full group-hover:left-0 transition-all duration-300 opacity-0 group-hover:opacity-100 ${theme === 'light' ? 'group-hover:opacity-80' : ''}`}></span>
                 </Link>
               ))}
             </div>
@@ -184,7 +184,7 @@ export function Navbar() {
                   placeholder="Search..."
                   value={searchQuery}
                   onChange={handleSearchChange}
-                  className={`pl-9 pr-9 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent w-56 ${!isMobileDevice ? 'transition-all duration-300 focus:w-72' : ''}`}
+                  className={`pl-9 pr-9 py-1.5 rounded-full ${theme === 'dark' ? 'bg-slate-800/80 border border-slate-700/80 text-slate-100 placeholder-slate-400' : 'bg-slate-100/80 border border-slate-200 text-slate-800 placeholder-slate-500'} focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent w-56 ${!isMobileDevice ? 'transition-all duration-300 focus:w-72' : ''}`}
                 />
                 {searchQuery && (
                   <button 
@@ -200,9 +200,9 @@ export function Navbar() {
               
               {/* Search results dropdown */}
               {showSearchResults && (
-                <div className={`absolute right-0 mt-2 w-72 bg-black/90 backdrop-blur-xl rounded-lg shadow-lg py-1 border border-gray-800/30 ${!isMobileDevice ? 'animate-fadeIn' : ''} z-50`}>
+                <div className={`absolute right-0 mt-2 w-72 ${theme === 'dark' ? 'bg-black/90 border border-gray-800/30' : 'bg-white/95 border border-slate-200/60'} backdrop-blur-xl rounded-lg shadow-lg py-1 ${!isMobileDevice ? 'animate-fadeIn' : ''} z-50`}>
                   <div className="px-3 py-2 border-b border-gray-800/30">
-                    <p className="text-sm text-gray-400">
+                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                       {isSearching ? (
                         "Searching..."
                       ) : searchResults.length > 0 ? (

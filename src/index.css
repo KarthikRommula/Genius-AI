@@ -3,26 +3,30 @@
 @tailwind utilities;
 
 :root {
-  /* Light mode variables */
-  --background: #ffffff;
-  --background-secondary: #f9fafb;
-  --text-primary: #111827;
-  --text-secondary: #4b5563;
+  /* Light mode variables - Enhanced */
+  --background: #f8fafc;
+  --background-secondary: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
   --accent-primary: #4f46e5;
   --accent-secondary: #7c3aed;
-  --border-color: #e5e7eb;
+  --border-color: #e2e8f0;
   --card-bg: #ffffff;
-  --card-border: #f3f4f6;
-  --header-bg: linear-gradient(to bottom right, #4f46e5, #7c3aed);
+  --card-border: #e2e8f0;
+  --header-bg: linear-gradient(135deg, #4f46e5, #7c3aed, #8b5cf6);
   --header-text: #ffffff;
-  --nav-bg: rgba(255, 255, 255, 0.8);
-  --nav-border: rgba(229, 231, 235, 0.5);
-  --search-bg: #f3f4f6;
-  --search-border: #e5e7eb;
-  --dropdown-bg: rgba(255, 255, 255, 0.95);
-  --dropdown-border: rgba(229, 231, 235, 0.5);
-  --dropdown-shadow: rgba(0, 0, 0, 0.1);
-  --footer-bg: #f9fafb;
+  --nav-bg: rgba(255, 255, 255, 0.85);
+  --nav-border: rgba(226, 232, 240, 0.6);
+  --search-bg: #f8fafc;
+  --search-border: #e2e8f0;
+  --dropdown-bg: rgba(255, 255, 255, 0.97);
+  --dropdown-border: rgba(226, 232, 240, 0.6);
+  --dropdown-shadow: rgba(51, 65, 85, 0.1);
+  --footer-bg: #f1f5f9;
+  --card-shadow: 0 4px 20px rgba(51, 65, 85, 0.08);
+  --button-gradient: linear-gradient(135deg, #4f46e5, #7c3aed);
+  --button-hover-gradient: linear-gradient(135deg, #4338ca, #6d28d9);
+  --highlight-bg: rgba(79, 70, 229, 0.08);
 }
 
 .dark {
