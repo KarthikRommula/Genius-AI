@@ -1,5 +1,5 @@
 import { BookOpen, User, Menu, Bell, Search, ChevronDown } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import './Navbar.css';
 
 // Mock Link component with proper TypeScript types
@@ -17,45 +17,9 @@ const Link = ({ to, children, className, ...props }: LinkProps) => (
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const profileRef = useRef<HTMLDivElement>(null);
-  
-  // Handle scroll effect
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-  
-  // Close menus when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false);
-      }
-      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
-        setIsProfileOpen(false);
-      }
-    };
-    
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
   
   return (
-    <nav 
-      className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-black/95' : 'bg-gradient-to-r from-black/90 via-gray-950/90 to-black/90'} backdrop-blur-xl border-b border-gray-800/30 shadow-lg`}
-      role="navigation"
-      aria-label="Main navigation"
-    >
+    <nav className="fixed w-full z-50 bg-gradient-to-r from-black/90 via-gray-950/90 to-black/90 backdrop-blur-xl border-b border-gray-800/30 shadow-lg">
       {/* Subtle decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-24 -left-24 w-48 h-48 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-pulse-slow"></div>
@@ -164,86 +128,51 @@ export function Navbar() {
             
             {/* Mobile menu button */}
             <button
-              className="lg:hidden p-2.5 rounded-full hover:bg-gray-900/60 transition-all duration-300"
+              className="lg:hidden p-1.5 rounded-full hover:bg-gray-900/60 transition-all duration-300"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-expanded={isMenuOpen}
-              aria-controls="mobile-menu"
-              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
             >
               {isMenuOpen ? (
-                <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               ) : (
-                <Menu className="h-6 w-6 text-gray-400 hover:text-white transition-colors duration-300" />
+                <Menu className="h-5 w-5 text-gray-400 hover:text-white transition-colors duration-300" />
               )}
             </button>
           </div>
         </div>
         
         {/* Mobile menu */}
-        <div 
-          id="mobile-menu"
-          ref={menuRef}
-          className={`lg:hidden py-3 border-t border-gray-800/20 transition-all duration-300 ${isMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 invisible overflow-hidden'}`}
-        >
-          <div className="flex flex-col space-y-1 px-2">
-            <Link 
-              to="/courses" 
-              className="px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-800/30 rounded-lg transition-all duration-200 flex items-center"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-              <span className="font-medium">Courses</span>
-            </Link>
-            <Link 
-              to="/playground" 
-              className="px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-800/30 rounded-lg transition-all duration-200 flex items-center"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="font-medium">Playground</span>
-            </Link>
-            <Link 
-              to="/resources" 
-              className="px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-800/30 rounded-lg transition-all duration-200 flex items-center"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-              <span className="font-medium">Resources</span>
-            </Link>
-            <Link 
-              to="/community" 
-              className="px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-800/30 rounded-lg transition-all duration-200 flex items-center"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              <span className="font-medium">Community</span>
-            </Link>
-            
-            {/* Mobile search */}
-            <div className="px-4 py-2 mt-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  aria-label="Search"
-                  className="w-full pl-9 pr-4 py-3 bg-gray-900/50 border border-gray-800/30 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
-                />
+        {isMenuOpen && (
+          <div className="lg:hidden py-3 border-t border-gray-800/20 animate-fadeIn">
+            <div className="flex flex-col space-y-1">
+              <Link to="/courses" className="px-4 py-2 text-gray-300 hover:text-white transition-all duration-200">
+                <span className="font-medium">Courses</span>
+              </Link>
+              <Link to="/playground" className="px-4 py-2 text-gray-300 hover:text-white transition-all duration-200">
+                <span className="font-medium">Playground</span>
+              </Link>
+              <Link to="/resources" className="px-4 py-2 text-gray-300 hover:text-white transition-all duration-200">
+                <span className="font-medium">Resources</span>
+              </Link>
+              <Link to="/community" className="px-4 py-2 text-gray-300 hover:text-white transition-all duration-200">
+                <span className="font-medium">Community</span>
+              </Link>
+              
+              {/* Mobile search */}
+              <div className="px-4 py-2 mt-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    className="w-full pl-9 pr-4 py-1.5 bg-gray-900/50 border border-gray-800/30 rounded-full text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </nav>
   );

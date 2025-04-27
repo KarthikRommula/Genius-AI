@@ -247,9 +247,8 @@ html {
   text-size-adjust: 100%; /* Prevent text size adjustment after orientation changes */
   -webkit-text-size-adjust: 100%;
   touch-action: manipulation; /* Improves touch behavior */
-  /* Improve performance by using content-visibility */
-  content-visibility: auto;
-  contain-intrinsic-size: 1px 5000px; /* Estimate for content height */
+  /* Improve performance with less aggressive optimizations */
+  overscroll-behavior: contain;
 }
 
 /* Better text rendering with performance optimization */
@@ -257,9 +256,6 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  /* Improve paint performance */
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
 }
 
 /* Prevent long words from breaking layout */
@@ -306,8 +302,6 @@ p, h1, h2, h3, h4, h5, h6, li, td, th {
   .section {
     padding-top: 2.5rem;
     padding-bottom: 2.5rem;
-    content-visibility: auto;
-    contain-intrinsic-size: 1px 800px;
   }
   
   /* Reduce padding on containers */
@@ -318,19 +312,18 @@ p, h1, h2, h3, h4, h5, h6, li, td, th {
   
   /* Optimize images */
   img {
-    content-visibility: auto;
     max-width: 100%;
     height: auto;
   }
   
-  /* Reduce animation complexity */
+  /* Disable complex animations on mobile */
   .animate-blob, .animate-pulse-slow, .animate-pulse-slow-alt {
-    animation-duration: 10s;
+    animation: none;
   }
   
-  /* Optimize background effects */
+  /* Simplify background effects */
   .bg-gradient-to-br, .bg-gradient-to-r {
-    background-size: 100% 100%;
-    background-attachment: scroll;
+    background-image: none;
+    background-color: #000;
   }
 }
