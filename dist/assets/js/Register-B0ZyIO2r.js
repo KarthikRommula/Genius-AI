@@ -1,1 +1,0 @@
-import{j as e}from"./index-BFVnrgS8.js";import"./vendor-CiO5v8bO.js";import"./ui-CT7WLdiF.js";function r(){return e.jsxs("div",{children:[e.jsx("h1",{children:"Resources Page"}),e.jsx("p",{children:"Welcome to the Resources page!"})]})}export{r as Register};

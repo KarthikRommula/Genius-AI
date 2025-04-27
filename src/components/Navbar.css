@@ -1,85 +1,106 @@
-  /* Navbar.css */
+/* Navbar.css - Optimized for performance */
 
-/* Fade in animation for dropdowns and mobile menu */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
+/* Disable animations on mobile */
+@media (max-width: 768px) {
+  .animate-fadeIn,
+  .animate-slideIn,
+  .animate-pulse-slow,
+  .animate-pulse-slow-alt,
+  .notification-pulse {
+    animation: none !important;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  
+  /* Disable transition effects on mobile */
+  .transition-all,
+  .transition-colors,
+  .transition-transform {
+    transition: none !important;
+  }
+  
+  /* Simplify hover states on mobile */
+  .hover\:bg-gray-900\/60:hover,
+  .hover\:text-white:hover,
+  .hover\:bg-gray-800\/50:hover,
+  .hover\:text-indigo-300:hover {
+    background-color: initial !important;
+    color: initial !important;
+  }
+  
+  /* Disable shadows and blur effects */
+  .shadow-lg,
+  .shadow-xl,
+  .shadow-\[0_0_15px_rgba\(79\,70\,229\,0\.4\)\],
+  .shadow-\[0_0_20px_rgba\(79\,70\,229\,0\.6\)\],
+  .backdrop-blur-xl,
+  .backdrop-blur-sm {
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 }
 
-/* Slide in animation for mobile menu */
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-100%);
+/* Desktop animations */
+@media (min-width: 769px) {
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
 
-/* Slow pulsing animations for background blobs */
-@keyframes pulseSlow {
-  0%, 100% {
-    opacity: 0.05;
-    transform: scale(1);
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
-  50% {
-    opacity: 0.1;
-    transform: scale(1.1);
+
+  @keyframes pulseSlow {
+    0%, 100% {
+      opacity: 0.05;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.1;
+      transform: scale(1.1);
+    }
   }
-}
 
-@keyframes pulseSlowAlt {
-  0%, 100% {
-    opacity: 0.05;
-    transform: scale(1);
+  @keyframes pulseSlowAlt {
+    0%, 100% {
+      opacity: 0.05;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.08;
+      transform: scale(1.15);
+    }
   }
-  50% {
-    opacity: 0.08;
-    transform: scale(1.15);
+
+  .animate-fadeIn {
+    animation: fadeIn 0.15s ease-out forwards;
   }
-}
 
-/* Notification dot pulse effect */
-@keyframes notificationPulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+  .animate-slideIn {
+    animation: slideIn 0.25s ease-out forwards;
   }
-  70% {
-    box-shadow: 0 0 0 6px rgba(99, 102, 241, 0);
+
+  .animate-pulse-slow {
+    animation: pulseSlow 8s ease-in-out infinite;
   }
-  100% {
-    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+
+  .animate-pulse-slow-alt {
+    animation: pulseSlowAlt 10s ease-in-out infinite;
+    animation-delay: 4s;
   }
-}
-
-/* Animation classes */
-.animate-fadeIn {
-  animation: fadeIn 0.15s ease-out forwards;
-}
-
-.animate-slideIn {
-  animation: slideIn 0.25s ease-out forwards;
-}
-
-.animate-pulse-slow {
-  animation: pulseSlow 8s ease-in-out infinite;
-}
-
-.animate-pulse-slow-alt {
-  animation: pulseSlowAlt 10s ease-in-out infinite;
-  animation-delay: 4s;
-}
-
-.notification-pulse {
-  animation: notificationPulse 2s infinite;
 }
 
 /* Ensure proper stacking context */
@@ -92,132 +113,50 @@ nav {
   z-index: 10;
 }
 
-/* Custom scrollbar for dropdown */
-.absolute::-webkit-scrollbar {
-  width: 6px;
-}
-
-.absolute::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.absolute::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-}
-
-.absolute::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-/* Mobile menu transitions */
-@media (max-width: 1023px) {
-  .mobile-menu-enter {
-    transform: translateY(-10px);
-    opacity: 0;
+/* Custom scrollbar for dropdown - only on desktop */
+@media (min-width: 769px) {
+  .absolute::-webkit-scrollbar {
+    width: 6px;
   }
-  
-  .mobile-menu-enter-active {
-    transform: translateY(0);
-    opacity: 1;
-    transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+
+  .absolute::-webkit-scrollbar-track {
+    background: transparent;
   }
-  
-  .mobile-menu-exit {
-    transform: translateY(0);
-    opacity: 1;
+
+  .absolute::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
   }
-  
-  .mobile-menu-exit-active {
-    transform: translateY(-10px);
-    opacity: 0;
-    transition: transform 0.2s ease-in, opacity 0.2s ease-in;
+
+  .absolute::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.2);
   }
 }
 
-/* Ensure Tailwind classes work properly */
-@media (max-width: 1023px) {
-  .lg\:hidden {
-    display: block !important;
-  }
-  
-  .lg\:flex {
-    display: none !important;
-  }
-}
-
-/* Prevent body scroll when mobile menu is open */
-body.mobile-menu-open {
-  overflow: hidden;
-}
-
-/* Smooth transitions for all interactive elements */
-button, 
-a, 
-input {
-  transition: all 0.2s ease-in-out;
-}
-
-/* Fix for mobile Safari input zoom issue and improve touch performance */
-@media screen and (max-width: 768px) {
-  input[type="text"],
-  input[type="search"],
-  input[type="email"],
-  input[type="password"] {
-    font-size: 16px;
-    -webkit-appearance: none; /* Removes iOS styling */
-    appearance: none; /* Standard property for cross-browser compatibility */
-  }
-  
-  /* Improve touch response */
-  a, button, input, select, textarea {
-    touch-action: manipulation;
-  }
-  
-  /* Prevent text size adjustment on orientation change */
-  html {
-    -webkit-text-size-adjust: 100%;
-  }
-}
-
-/* Ensure the mobile menu has proper z-index and background */
-.mobile-menu {
-  position: fixed;
-  top: 64px; /* Height of navbar */
-  left: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0.95);
-  background: linear-gradient(to right, rgba(0, 0, 0, 0.95), rgba(9, 9, 11, 0.95), rgba(0, 0, 0, 0.95));
-  z-index: 40;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-  max-height: calc(100vh - 64px);
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-  transform: translateZ(0); /* Force GPU acceleration */
-  will-change: transform, opacity; /* Hint to browser for optimization */
-}
-
-/* Add backdrop blur to mobile menu */
-@supports (backdrop-filter: blur(12px)) {
-  .mobile-menu {
-    backdrop-filter: blur(12px);
-  }
-}
-
-/* Ensure mobile menu items are visible */
-.mobile-menu a {
-  display: block;
-  opacity: 1;
-}
-
-/* Improve touch targets on mobile */
+/* Mobile menu optimizations */
 @media (max-width: 768px) {
+  .mobile-menu {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.98), rgba(9, 9, 11, 0.98), rgba(0, 0, 0, 0.98));
+    z-index: 40;
+    box-shadow: none;
+    max-height: calc(100vh - 64px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    transform: translateZ(0); /* GPU acceleration */
+  }
+  
+  /* Optimize touch targets */
   .touch-target {
     min-height: 44px;
     min-width: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
+    touch-action: manipulation;
   }
   
   /* Ensure navbar is not too tall on small screens */
@@ -226,18 +165,17 @@ input {
     min-height: 56px;
   }
   
-  /* Improve mobile search experience */
-  .mobile-search-container {
-    position: relative;
-    width: 100%;
-    transform: translateZ(0); /* Force GPU acceleration */
-    will-change: transform; /* Hint to browser for optimization */
+  /* Fix for mobile Safari input zoom issue */
+  input[type="text"],
+  input[type="search"] {
+    font-size: 16px;
   }
   
-  /* Ensure dropdown menus don't overflow screen */
+  /* Simplify dropdown menus */
   .dropdown-menu {
     max-height: 80vh;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -261,34 +199,16 @@ input {
   }
 }
 
-/* Performance optimizations for animations */
-@media (max-width: 768px) {
-  /* Reduce animation complexity on mobile */
-  .animate-fadeIn {
-    animation-duration: 0.1s;
-  }
-  
-  .animate-slideIn {
-    animation-duration: 0.2s;
-  }
-  
-  /* Optimize rendering performance */
-  .mobile-menu, 
-  .dropdown-menu,
-  .animate-fadeIn,
-  .animate-slideIn {
-    backface-visibility: hidden;
-    perspective: 1000px;
-    transform: translate3d(0, 0, 0);
-  }
-  
-  /* Reduce motion for users who prefer it */
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.01s !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01s !important;
-      scroll-behavior: auto !important;
-    }
+/* Prevent body scroll when mobile menu is open */
+body.mobile-menu-open {
+  overflow: hidden;
+}
+
+/* Smooth transitions for desktop only */
+@media (min-width: 769px) {
+  button, 
+  a, 
+  input {
+    transition: all 0.2s ease-in-out;
   }
 }
