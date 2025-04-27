@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import { BookOpen, Code, Video, Users, Award, Brain, ArrowRight, Star, Check, Target, Medal, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -58,15 +58,55 @@ const STATS = [
 ];
 
 export function Home() {
-  React.useEffect(() => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set(['hero']));
+  
+  // Handle initial fade-in animation
+  useEffect(() => {
     document.body.classList.add('animate-fade-in');
-    return () => document.body.classList.remove('animate-fade-in');
+    // Mark component as loaded after initial animation
+    const timer = setTimeout(() => setIsLoaded(true), 500);
+    
+    return () => {
+      document.body.classList.remove('animate-fade-in');
+      clearTimeout(timer);
+    };
   }, []);
+  
+  // Intersection Observer for lazy loading sections
+  useEffect(() => {
+    if (!isLoaded) return;
+    
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1
+    };
+    
+    const sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && entry.target.id) {
+          setVisibleSections(prev => new Set(prev).add(entry.target.id));
+        }
+      });
+    }, observerOptions);
+    
+    // Observe all sections
+    document.querySelectorAll('section[id]').forEach(section => {
+      sectionObserver.observe(section);
+    });
+    
+    return () => sectionObserver.disconnect();
+  }, [isLoaded]);
 
   return (
-    <div className="min-h-screen bg-black">
+    <main className="min-h-screen bg-black">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-black via-gray-900/95 to-gray-900/90 overflow-hidden">
+      <section id="hero" className="relative bg-gradient-to-br from-black via-gray-900/95 to-gray-900/90 overflow-hidden">
+        {/* Skip to main content link for accessibility */}
+        <a href="#courses" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-md">
+          Skip to main content
+        </a>
         {/* Subtle color accents */}
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/10 via-violet-950/5 to-transparent pointer-events-none"></div>
         {/* Animated background blobs */}
@@ -74,10 +114,10 @@ export function Home() {
         <div className="absolute top-0 -right-4 w-72 h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animate-delay-200"></div>
         <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animate-delay-400"></div>
         
-        <div className="absolute inset-0 bg-[url('/images/HERO.avif')] opacity-10 bg-cover bg-center"></div>
+        <div className="absolute inset-0 bg-[url('/images/HERO.avif')] opacity-10 bg-cover bg-center" aria-hidden="true" role="presentation"></div>
         
         {/* Subtle SVG pattern for extra depth */}
-        <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
           <svg width="100%" height="100%" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -91,7 +131,7 @@ export function Home() {
         {/* Glassmorphism overlay */}
         <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
         
-        <div className="max-w-5xl mx-auto px-4 sm:px-8 lg:px-16 relative py-32 flex flex-col items-center justify-center">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative py-20 md:py-32 flex flex-col items-center justify-center">
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-indigo-500/30 backdrop-blur-sm border border-indigo-400/50 text-indigo-100 mb-8 animate-fade-in sm:mt-10">
               <span className="flex h-2 w-2 rounded-full bg-indigo-300 animate-pulse mr-2"></span>
@@ -115,13 +155,15 @@ export function Home() {
               <Link
                 to="/courses"
                 className="px-8 py-4 bg-white/10 text-white border border-white/30 rounded-xl hover:bg-white/20 transition-all duration-300 flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl"
+                aria-label="Explore all available courses"
               >
                 Explore Courses
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 to="/register"
-                className="px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl transition-all duration-300 shadow-xl"
+                className="px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl transition-all duration-300"
+                aria-label="Start your free trial"
               >
                 Start Free Trial
               </Link>
@@ -130,7 +172,7 @@ export function Home() {
         </div>
         
         {/* Stats Bar */}
-        <div className="relative bg-gradient-to-r from-black/90 via-gray-900/80 to-black/90 backdrop-blur-xl border-y border-gray-800/30 shadow-lg">
+        <div className="relative bg-gradient-to-r from-black/90 via-gray-900/80 to-black/90 backdrop-blur-xl border-y border-gray-800/30 shadow-lg" aria-labelledby="stats-bar-heading">
           {/* Subtle decorative elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-24 -left-24 w-48 h-48 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-pulse-glow"></div>
@@ -146,7 +188,8 @@ export function Home() {
           </div>
           
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 relative z-10">
-            <div className="grid grid-cols-2 gap-y-10 gap-x-6 md:grid-cols-4 md:gap-x-8 lg:gap-x-12">
+            <h2 id="stats-bar-heading" className="text-3xl font-bold mb-4 text-white">Our Impact</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-y-10 gap-x-6 md:gap-x-8 lg:gap-x-12">
               {STATS.map((stat, index) => (
                 <div key={index} className={`text-center group animate-count-up-delay-${index}`}>
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-violet-500/10 mb-4 group-hover:from-indigo-500/30 group-hover:to-violet-500/20 transition-all duration-300 backdrop-blur-sm border border-indigo-500/10 group-hover:border-indigo-500/30 shadow-lg group-hover:shadow-indigo-500/10">
@@ -159,10 +202,10 @@ export function Home() {
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Features Section */}
-      <section className="py-32 relative bg-gradient-to-br from-black via-gray-950 to-black overflow-hidden">
+      <section id="features" className="py-32 relative bg-gradient-to-br from-black via-gray-950 to-black overflow-hidden" aria-labelledby="features-heading">
         {/* Background decorative elements */}
         <div className="absolute top-0 -right-4 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob animate-delay-2000"></div>
         <div className="absolute bottom-0 -left-4 w-72 h-72 bg-violet-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob"></div>
@@ -180,12 +223,8 @@ export function Home() {
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
-            <h2 className="text-4xl font-bold mb-6 text-white">
-              A Revolutionary Learning Experience
-            </h2>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Our platform combines cutting-edge technology with proven pedagogical methods
-            </p>
+            <h2 id="features-heading" className="text-4xl font-bold mb-6 text-white">A Revolutionary Learning Experience</h2>
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">Our platform combines cutting-edge technology with proven pedagogical methods</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -199,9 +238,7 @@ export function Home() {
                   <Video className="w-full h-full text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">HD Video Lectures</h3>
-                <p className="text-gray-300 leading-relaxed mb-6">
-                  Crystal-clear explanations from world-class professors with interactive transcripts
-                </p>
+                <p className="text-gray-300 leading-relaxed mb-6">Crystal-clear explanations from world-class professors with interactive transcripts</p>
                 <ul className="space-y-3">
                   <li className="flex items-center text-gray-400">
                     <Check className="w-5 h-5 text-blue-400 mr-3" />
@@ -229,9 +266,7 @@ export function Home() {
                   <Code className="w-full h-full text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">Live Coding Labs</h3>
-                <p className="text-gray-300 leading-relaxed mb-6">
-                  Interactive coding environments with AI-powered feedback and assistance
-                </p>
+                <p className="text-gray-300 leading-relaxed mb-6">Interactive coding environments with AI-powered feedback and assistance</p>
                 <ul className="space-y-3">
                   <li className="flex items-center text-gray-400">
                     <Check className="w-5 h-5 text-purple-400 mr-3" />
@@ -259,9 +294,7 @@ export function Home() {
                   <Brain className="w-full h-full text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">AI-Powered Learning</h3>
-                <p className="text-gray-300 leading-relaxed mb-6">
-                  Personalized learning paths that adapt to your pace and style
-                </p>
+                <p className="text-gray-300 leading-relaxed mb-6">Personalized learning paths that adapt to your pace and style</p>
                 <ul className="space-y-3">
                   <li className="flex items-center text-gray-400">
                     <Check className="w-5 h-5 text-cyan-400 mr-3" />
@@ -289,9 +322,7 @@ export function Home() {
                   <Users className="w-full h-full text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">Peer Collaboration</h3>
-                <p className="text-gray-300 leading-relaxed mb-6">
-                  Study groups, discussion forums, and real-time collaboration tools
-                </p>
+                <p className="text-gray-300 leading-relaxed mb-6">Study groups, discussion forums, and real-time collaboration tools</p>
                 <ul className="space-y-3">
                   <li className="flex items-center text-gray-400">
                     <Check className="w-5 h-5 text-green-400 mr-3" />
@@ -319,9 +350,7 @@ export function Home() {
                   <Award className="w-full h-full text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">Industry Certifications</h3>
-                <p className="text-gray-300 leading-relaxed mb-6">
-                  Earn recognized certificates to showcase your expertise
-                </p>
+                <p className="text-gray-300 leading-relaxed mb-6">Earn recognized certificates to showcase your expertise</p>
                 <ul className="space-y-3">
                   <li className="flex items-center text-gray-400">
                     <Check className="w-5 h-5 text-yellow-400 mr-3" />
@@ -349,9 +378,7 @@ export function Home() {
                   <BookOpen className="w-full h-full text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">Rich Resources</h3>
-                <p className="text-gray-300 leading-relaxed mb-6">
-                  Comprehensive study materials, notes, and project templates
-                </p>
+                <p className="text-gray-300 leading-relaxed mb-6">Comprehensive study materials, notes, and project templates</p>
                 <ul className="space-y-3">
                   <li className="flex items-center text-gray-400">
                     <Check className="w-5 h-5 text-rose-400 mr-3" />
@@ -373,7 +400,7 @@ export function Home() {
       </section>
 
     {/* Popular Courses Section */}
-    <section className="py-32 relative bg-gradient-to-br from-black via-gray-950/90 to-black overflow-hidden">
+    <section id="courses" className="py-32 relative bg-gradient-to-br from-black via-gray-950/90 to-black overflow-hidden" aria-labelledby="courses-heading">
       {/* Background decorative elements */}
       <div className="absolute top-0 -left-4 w-72 h-72 bg-violet-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob animate-delay-4000"></div>
       <div className="absolute bottom-0 right-20 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob animate-delay-1000"></div>
@@ -396,12 +423,13 @@ export function Home() {
                 <Globe className="w-4 h-4 mr-2" />
                 <span className="text-sm font-medium">Popular Courses</span>
               </div>
-              <h2 className="text-4xl font-bold mb-4 text-white">Start Your Learning Journey</h2>
+              <h2 id="courses-heading" className="text-4xl font-bold mb-4 text-white">Start Your Learning Journey</h2>
               <p className="text-xl text-slate-300">Begin with our most sought-after programs</p>
             </div>
             <Link 
               to="/courses" 
               className="hidden md:inline-flex items-center text-indigo-400 hover:text-indigo-300 font-semibold group"
+              aria-label="View all available courses"
             >
               View All Courses 
               <ArrowRight className="ml-2 h-5 w-5 transform group-hover:translate-x-1 transition-transform" />
@@ -493,7 +521,7 @@ export function Home() {
 
       
         {/* Testimonials Section */}
-        <section className="py-24 bg-gradient-to-br from-black via-gray-950/95 to-black section-padding relative overflow-hidden">
+        <section id="testimonials" className="py-24 bg-gradient-to-br from-black via-gray-950/95 to-black section-padding relative overflow-hidden" aria-labelledby="testimonials-heading">
           {/* Background decorative elements */}
           <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob"></div>
           <div className="absolute bottom-0 -right-4 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob animate-delay-2000"></div>
@@ -515,7 +543,7 @@ export function Home() {
                 <span className="flex h-2 w-2 rounded-full bg-indigo-300 animate-pulse mr-2"></span>
                 <span className="text-sm font-medium">Student Testimonials</span>
               </div>
-              <h2 className="text-4xl font-bold mb-4 text-white">What Our Students Say</h2>
+              <h2 id="testimonials-heading" className="text-4xl font-bold mb-4 text-white">What Our Students Say</h2>
               <p className="text-xl text-indigo-200/80 max-w-2xl mx-auto">Join thousands of satisfied learners who've transformed their careers with our comprehensive courses</p>
             </div>
             
@@ -603,11 +631,11 @@ export function Home() {
 
 
       {/* CTA Section */}
-      <section className="py-28 bg-gradient-to-br from-black via-gray-950/95 to-black relative overflow-hidden">
+      <section id="cta" className="py-20 md:py-28 bg-gradient-to-br from-black via-gray-950/95 to-black relative overflow-hidden" aria-labelledby="cta-heading">
         {/* Subtle color accents */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/10 via-violet-950/5 to-transparent pointer-events-none"></div>
-        <div className="absolute inset-0 bg-[url('/images/cta-background.webp')] opacity-10 bg-cover bg-center"></div>
-        <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/10 via-violet-950/5 to-transparent pointer-events-none" aria-hidden="true"></div>
+        <div className="absolute inset-0 bg-[url('/images/cta-background.webp')] opacity-10 bg-cover bg-center" aria-hidden="true"></div>
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
           <svg width="100%" height="100%" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="cta-dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -619,33 +647,39 @@ export function Home() {
         </div>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-2xl mx-auto">
-            <div className="inline-flex items-center px-6 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-indigo-400/30 text-indigo-100 mb-6 animate-fade-in">
-              <svg className="w-6 h-6 mr-2 text-indigo-300 animate-spin" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v4m0 8v4m8-8h-4m-8 0H4" /></svg>
-              <span className="font-medium tracking-wide">Ready to unlock your potential?</span>
-            </div>
-            <h2 className="text-5xl font-extrabold text-white mb-6 tracking-tight animate-fade-in animate-delay-100 drop-shadow-xl">
-              Ready to Start Your Journey?
-            </h2>
-            <p className="text-2xl text-indigo-100 mb-10 animate-fade-in animate-delay-200">
-              Join 50,000+ students mastering engineering with Genius. Take the first step toward your dream career today!
-            </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-6 animate-fade-in animate-delay-300">
-              <Link
-                to="/register"
-                className="px-10 py-5 bg-white text-indigo-700 rounded-xl text-lg font-bold hover:bg-indigo-50 transition-all duration-300 shadow-xl hover:shadow-2xl"
-              >
-                Start Free Trial
-              </Link>
-              <Link
-                to="/courses"
-                className="px-10 py-5 bg-transparent text-white border-2 border-white rounded-xl text-lg font-bold hover:bg-white/10 transition-all duration-300"
-              >
-                Browse Courses
-              </Link>
-            </div>
+            {visibleSections.has('cta') && (
+              <>
+                <div className="inline-flex items-center px-4 md:px-6 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-indigo-400/30 text-indigo-100 mb-6 animate-fade-in">
+                  <svg className="w-5 h-5 md:w-6 md:h-6 mr-2 text-indigo-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v4m0 8v4m8-8h-4m-8 0H4" /></svg>
+                  <span className="font-medium tracking-wide text-sm md:text-base">Ready to unlock your potential?</span>
+                </div>
+                <h2 id="cta-heading" className="text-4xl md:text-5xl font-extrabold text-white mb-6 tracking-tight animate-fade-in animate-delay-100 drop-shadow-xl">
+                  Ready to Start Your Journey?
+                </h2>
+                <p className="text-xl md:text-2xl text-indigo-100 mb-8 md:mb-10 animate-fade-in animate-delay-200">
+                  Join 50,000+ students mastering engineering with Genius. Take the first step toward your dream career today!
+                </p>
+                <div className="flex flex-col sm:flex-row justify-center gap-4 md:gap-6 animate-fade-in animate-delay-300">
+                  <Link
+                    to="/register"
+                    className="px-8 md:px-10 py-4 md:py-5 bg-white text-indigo-700 rounded-xl text-base md:text-lg font-bold hover:bg-indigo-50 transition-all duration-300 shadow-xl hover:shadow-2xl"
+                    aria-label="Start your free trial"
+                  >
+                    Start Free Trial
+                  </Link>
+                  <Link
+                    to="/courses"
+                    className="px-8 md:px-10 py-4 md:py-5 bg-transparent text-white border-2 border-white rounded-xl text-base md:text-lg font-bold hover:bg-white/10 transition-all duration-300"
+                    aria-label="Browse all courses"
+                  >
+                    Browse Courses
+                  </Link>
+                </div>
+              </>
+            )}
           </div>  
         </div>
       </section>
-    </div>
+    </main>
   );
 }
