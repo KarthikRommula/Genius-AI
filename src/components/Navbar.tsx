@@ -1,7 +1,8 @@
-import { BookOpen, User, Menu, Search, ChevronDown, X, Code, Users, FileText, Globe } from 'lucide-react';
+import { BookOpen, User, Menu, Search, ChevronDown, X, Code, Users, FileText, Globe, Sun, Moon } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { isMobile } from '../utils/deviceDetection';
 import { searchContent, SearchResult } from '../utils/searchUtils';
+import { useTheme } from '../context/useTheme';
 import './Navbar.css';
 
 interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
@@ -26,12 +27,16 @@ export function Navbar() {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   
+  // Get theme context
+  const { theme, toggleTheme } = useTheme();
+  
   const menuRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   
   useEffect(() => {
+    // Set mobile detection once - no need to constantly check
     setIsMobileDevice(isMobile());
   }, []);
   
@@ -55,40 +60,24 @@ export function Navbar() {
   }, []);
   
   useEffect(() => {
-    // Store the current scroll position before locking the body
-    const scrollY = window.scrollY;
-    
     if (isMenuOpen) {
+      // Simple approach - just prevent scrolling
       document.body.classList.add('mobile-menu-open');
-      // Add padding to prevent content shift
-      document.body.style.paddingRight = `${window.innerWidth - document.documentElement.clientWidth}px`;
-      // Fix body position but maintain scroll position
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
     } else {
-      // Restore body position and scroll
-      const scrollY = parseInt(document.body.style.top || '0') * -1;
+      // Re-enable scrolling
       document.body.classList.remove('mobile-menu-open');
-      document.body.style.paddingRight = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-      window.scrollTo(0, scrollY);
     }
     
     return () => {
+      // Cleanup function
       document.body.classList.remove('mobile-menu-open');
-      document.body.style.paddingRight = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
     };
   }, [isMenuOpen]);
   
   const handleLinkClick = () => {
     setIsMenuOpen(false);
     setShowSearchResults(false);
+    setIsProfileOpen(false);
   };
   
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,13 +92,13 @@ export function Navbar() {
     
     setIsSearching(true);
     
-    // Debounce search for mobile
+    // Reduce debounce time for better responsiveness
     const searchTimeout = setTimeout(() => {
       const filteredResults = searchContent(query);
       setSearchResults(filteredResults);
       setIsSearching(false);
       setShowSearchResults(true);
-    }, isMobileDevice ? 500 : 300);
+    }, 150); // Faster response time for all devices
     
     return () => clearTimeout(searchTimeout);
   };
@@ -267,7 +256,7 @@ export function Navbar() {
             {/* Profile dropdown - simplified for mobile */}
             <div className="relative" ref={profileRef}>
               <button 
-                className={`flex items-center space-x-1.5 p-1.5 rounded-full ${!isMobileDevice ? 'hover:bg-gray-900/60 transition-all duration-300' : ''} touch-target`}
+                className="flex items-center space-x-1.5 p-1.5 rounded-full touch-target"
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
               >
                 <div className={`h-7 w-7 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md ${!isMobileDevice ? 'transition-all duration-300 hover:shadow-[0_0_10px_rgba(79,70,229,0.4)]' : ''}`}>
@@ -289,6 +278,18 @@ export function Navbar() {
                     </svg>
                     <span>Settings</span>
                   </Link>
+                  <button 
+                    onClick={toggleTheme} 
+                    className={`flex w-full items-center px-4 py-2 text-gray-300 ${!isMobileDevice ? 'hover:text-white transition-all duration-200 group' : ''}`}
+                    aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                  >
+                    {theme === 'dark' ? (
+                      <Sun className={`h-4 w-4 mr-2 text-amber-400 ${!isMobileDevice ? 'group-hover:text-amber-300' : ''}`} />
+                    ) : (
+                      <Moon className={`h-4 w-4 mr-2 text-indigo-400 ${!isMobileDevice ? 'group-hover:text-indigo-300' : ''}`} />
+                    )}
+                    <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                  </button>
                   <hr className="my-1 border-gray-800/30" />
                   <button className={`flex w-full items-center px-4 py-2 text-red-400 ${!isMobileDevice ? 'hover:text-red-300 transition-all duration-200 group' : ''}`}>
                     <svg className={`h-4 w-4 mr-2 text-red-500/70 ${!isMobileDevice ? 'group-hover:text-red-400' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -302,7 +303,7 @@ export function Navbar() {
             
             {/* Mobile menu button */}
             <button
-              className={`lg:hidden p-1.5 rounded-full ${!isMobileDevice ? 'hover:bg-gray-900/60 transition-all duration-300' : ''} touch-target`}
+              className="lg:hidden p-1.5 rounded-full touch-target"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label={isMenuOpen ? "Close menu" : "Open menu"}
               aria-expanded={isMenuOpen}
@@ -329,7 +330,7 @@ export function Navbar() {
                   key={item}
                   to={`/${item.toLowerCase()}`} 
                   onClick={handleLinkClick} 
-                  className={`px-4 py-3.5 text-gray-200 ${!isMobileDevice ? 'hover:text-white hover:bg-gray-900 transition-all duration-200' : ''} rounded-xl flex items-center touch-target bg-black border border-gray-800/30`}
+                  className={`px-4 py-3.5 text-gray-200 ${!isMobileDevice ? 'hover:text-white hover:bg-gray-900 transition-all duration-200' : ''} rounded-xl flex items-center touch-target bg-black/90 border border-gray-800/30 active:bg-gray-900/80`}
                 >
                   <div className="mr-3 p-1.5 rounded-md bg-gradient-to-br from-indigo-600/20 to-violet-600/20 backdrop-blur-sm">
                     {item === 'Courses' && <BookOpen className="h-4 w-4 text-indigo-400" />}
@@ -363,8 +364,8 @@ export function Navbar() {
                 
                 {/* Mobile search results */}
                 {showSearchResults && searchResults.length > 0 && (
-                  <div className={`mt-3 bg-gray-900/80 rounded-lg border border-gray-800/30 ${!isMobileDevice ? 'animate-fadeIn' : ''}`}>
-                    <div className="max-h-60 overflow-y-auto">
+                  <div className={`mt-3 bg-gray-900 rounded-lg border border-gray-800/30 ${!isMobileDevice ? 'animate-fadeIn' : ''} max-h-60 overflow-y-auto`}>
+                    <div className="overflow-y-auto -webkit-overflow-scrolling-touch">
                       {searchResults.map((result) => (
                         <Link 
                           key={result.id}
@@ -372,13 +373,13 @@ export function Navbar() {
                           onClick={handleLinkClick}
                           className={`flex items-center px-3 py-3 ${!isMobileDevice ? 'hover:bg-gray-800/50 transition-all duration-200' : ''} border-b border-gray-800/20 last:border-b-0`}
                         >
-                          <div className="mr-3">
+                          <div className="mr-3 flex-shrink-0">
                             <div className={`p-1.5 rounded-md ${result.type === 'course' ? 'bg-indigo-500/20' : result.type === 'resource' ? 'bg-violet-500/20' : result.type === 'community' ? 'bg-emerald-500/20' : 'bg-amber-500/20'}`}>
                             {getResultIcon(result.type)}
+                            </div>
                           </div>
-                          </div>
-                          <div>
-                            <p className="text-sm text-white font-medium">{result.title}</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-white font-medium truncate">{result.title}</p>
                             <p className="text-xs text-gray-400 line-clamp-1">{result.description}</p>
                             <p className="text-xs text-gray-500 capitalize mt-0.5">{result.type}</p>
                           </div>

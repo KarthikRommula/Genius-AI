@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from 'react';
 import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
+import { ThemeProvider } from "./context/ThemeContext";
 
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home').then(module => ({ default: module.Home })));
@@ -24,25 +25,27 @@ const LoadingFallback = () => (
 
 function App() {  
   return (
-    <Router>
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-grow">
-          <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/courses" element={<Courses />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/playground" element={<Playground />} />
-              <Route path="/community" element={<Community />} />
-              <Route path="/resources" element={<Resources />} />
-              <Route path="/register" element={<Register />} />
-            </Routes>
-          </Suspense>
-        </main>
-        <Footer />
-      </div>
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <div className="flex flex-col min-h-screen">
+          <Navbar />
+          <main className="flex-grow">
+            <Suspense fallback={<LoadingFallback />}>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/courses" element={<Courses />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/playground" element={<Playground />} />
+                <Route path="/community" element={<Community />} />
+                <Route path="/resources" element={<Resources />} />
+                <Route path="/register" element={<Register />} />
+              </Routes>
+            </Suspense>
+          </main>
+          <Footer />  
+        </div>
+      </Router>
+    </ThemeProvider>
   );
 }
 

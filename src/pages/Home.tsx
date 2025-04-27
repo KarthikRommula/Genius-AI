@@ -75,9 +75,9 @@ export function Home() {
   }, [prefersReducedMotion]);
   
   return (
-    <main className="min-h-screen bg-black">
+    <main className="min-h-screen" style={{ backgroundColor: 'var(--background)' }}>
       {/* Hero Section */}
-      <section id="hero" className="relative bg-gradient-to-br from-black via-gray-900/95 to-gray-900/90 overflow-hidden">
+      <section id="hero" className="relative overflow-hidden" style={{ background: 'var(--header-bg)' }}>
         <a href="#courses" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-md">
           Skip to main content
         </a>

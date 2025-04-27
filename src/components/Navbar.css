@@ -27,16 +27,10 @@ body.mobile-menu-open {
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.95);
   z-index: 40;
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-  opacity: 0;
-  animation: fadeIn 0.3s ease forwards;
+  touch-action: none; /* Prevent scrolling on overlay */
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+
 
 /* Disable animations on mobile */
 @media (max-width: 768px) {
@@ -184,7 +178,6 @@ nav {
     max-height: calc(100vh - 64px);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    transform: translateZ(0); /* GPU acceleration */
   }
   
   /* Optimize touch targets */
@@ -195,6 +188,11 @@ nav {
     align-items: center;
     justify-content: center;
     touch-action: manipulation;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on iOS */
+    -webkit-touch-callout: none; /* Disable callout */
+    -webkit-user-select: none; /* Disable selection */
+    user-select: none;
   }
   
   /* Ensure navbar is not too tall on small screens */
@@ -227,6 +225,15 @@ nav {
     padding-left: 0.5rem;
     padding-right: 0.5rem;
   }
+  
+  /* Ensure touch targets are big enough on small screens */
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 /* Landscape mode adjustments for mobile */
@@ -234,6 +241,13 @@ nav {
   .mobile-menu {
     max-height: 80vh;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Compact menu items in landscape */
+  .mobile-menu .flex-col > a {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
   }
 }
 
@@ -248,5 +262,14 @@ body.mobile-menu-open {
   a, 
   input {
     transition: all 0.2s ease-in-out;
+  }
+}
+
+/* Ensure immediate response on mobile */
+@media (max-width: 768px) {
+  button, 
+  a, 
+  input {
+    transition: none !important;
   }
 }

@@ -2,6 +2,52 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Light mode variables */
+  --background: #ffffff;
+  --background-secondary: #f9fafb;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --accent-primary: #4f46e5;
+  --accent-secondary: #7c3aed;
+  --border-color: #e5e7eb;
+  --card-bg: #ffffff;
+  --card-border: #f3f4f6;
+  --header-bg: linear-gradient(to bottom right, #4f46e5, #7c3aed);
+  --header-text: #ffffff;
+  --nav-bg: rgba(255, 255, 255, 0.8);
+  --nav-border: rgba(229, 231, 235, 0.5);
+  --search-bg: #f3f4f6;
+  --search-border: #e5e7eb;
+  --dropdown-bg: rgba(255, 255, 255, 0.95);
+  --dropdown-border: rgba(229, 231, 235, 0.5);
+  --dropdown-shadow: rgba(0, 0, 0, 0.1);
+  --footer-bg: #f9fafb;
+}
+
+.dark {
+  /* Dark mode variables */
+  --background: #000000;
+  --background-secondary: #111111;
+  --text-primary: #ffffff;
+  --text-secondary: #a3a3a3;
+  --accent-primary: #6366f1;
+  --accent-secondary: #a78bfa;
+  --border-color: rgba(75, 85, 99, 0.3);
+  --card-bg: rgba(17, 17, 17, 0.6);
+  --card-border: rgba(75, 85, 99, 0.3);
+  --header-bg: linear-gradient(to bottom right, #000000, #111827);
+  --header-text: #ffffff;
+  --nav-bg: rgba(0, 0, 0, 0.8);
+  --nav-border: rgba(75, 85, 99, 0.3);
+  --search-bg: rgba(31, 41, 55, 0.8);
+  --search-border: rgba(75, 85, 99, 0.5);
+  --dropdown-bg: rgba(0, 0, 0, 0.9);
+  --dropdown-border: rgba(75, 85, 99, 0.3);
+  --dropdown-shadow: rgba(0, 0, 0, 0.5);
+  --footer-bg: #111111;
+}
+
 @layer utilities {
   @keyframes blob {
     0%, 100% {
@@ -33,7 +79,14 @@
   }
   
   body {
-    @apply bg-gray-50;
+    background-color: var(--background);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Apply theme transitions to common elements */
+  a, button, input, select, textarea {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
   }
 }
 
