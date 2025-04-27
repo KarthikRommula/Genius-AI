@@ -1,19 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BookOpen, Code, Video, Users, Award, Brain, ArrowRight, Star, Check, Target, Medal, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-// Add a style tag to ensure black background during loading
-if (typeof document !== 'undefined') {
-  const style = document.createElement('style');
-  style.innerHTML = `
-    html, body {
-      background-color: #000 !important;
-      margin: 0;
-      padding: 0;
-    }
-  `;
-  document.head.appendChild(style);
-}
+import { isMobile, isSlowDevice, useReducedMotion } from '../utils/deviceDetection';
 
 const FEATURED_COURSES = [
   {
@@ -71,223 +59,89 @@ const STATS = [
 ];
 
 export function Home() {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set(['hero']));
-  const [imagesLoaded, setImagesLoaded] = useState(false);
+  // State for controlling animations and device-specific behavior
+  const [shouldReduceMotion, setShouldReduceMotion] = useState(false);
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
   
-  // Set background color immediately on component mount
+  // Use the proper React Hook at the component level
+  const prefersReducedMotion = useReducedMotion();
+  
   useEffect(() => {
-    // Force black background on body and html
-    document.documentElement.style.backgroundColor = '#000';
-    document.body.style.backgroundColor = '#000';
-    
-    // Detect if we're on a mobile device
-    const isMobile = window.innerWidth < 768;
-    
-    // Preload critical images with priority based on device
-    const preloadImages = () => {
-      // Only preload the most critical image on mobile to improve initial load time
-      const criticalImages = isMobile ? 
-        ['/images/HERO.avif'] : 
-        [
-          '/images/HERO.avif',
-          '/images/PF1.webp',
-          '/images/PF2.webp',
-          '/images/PF3.webp'
-        ];
-      
-      let loadedCount = 0;
-      criticalImages.forEach(src => {
-        const img = new Image();
-        // Add fetchpriority hint for the hero image
-        if (src === '/images/HERO.avif') {
-          img.setAttribute('fetchpriority', 'high');
-        }
-        img.src = src;
-        img.onload = () => {
-          loadedCount++;
-          if (loadedCount === criticalImages.length) {
-            setImagesLoaded(true);
-            // If on mobile, load the rest of the images after the critical ones
-            if (isMobile) {
-              const secondaryImages = [
-                '/images/PF1.webp',
-                '/images/PF2.webp',
-                '/images/PF3.webp'
-              ];
-              secondaryImages.forEach(src => {
-                const img = new Image();
-                img.src = src;
-              });
-            }
-          }
-        };
-        img.onerror = () => {
-          loadedCount++;
-          if (loadedCount === criticalImages.length) {
-            setImagesLoaded(true);
-          }
-        };
-      });
-      
-      // Shorter fallback timeout on mobile for better perceived performance
-      setTimeout(() => setImagesLoaded(true), isMobile ? 1000 : 2000);
-    };
-    
-    preloadImages();
-    
-    // Only add animation class on non-mobile devices
-    if (!isMobile) {
-      document.body.classList.add('animate-fade-in');
-    }
-    
-    // Mark component as loaded after initial animation - faster on mobile
-    const timer = setTimeout(() => setIsLoaded(true), isMobile ? 300 : 500);
-    
-    return () => {
-      document.body.classList.remove('animate-fade-in');
-      clearTimeout(timer);
-    };
-  }, []);
+    setIsMobileDevice(isMobile());
+    setShouldReduceMotion(isSlowDevice() || prefersReducedMotion);
+    // Initialize component based on device capabilities
+  }, [prefersReducedMotion]);
   
-  // Detect if we're on a mobile device - moved to component level for reuse
-  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
-  
-  // Define RequestIdleCallback interfaces for TypeScript
-  interface RequestIdleCallbackOptions {
-    timeout?: number;
-  }
-  
-  interface RequestIdleCallbackDeadline {
-    didTimeout: boolean;
-    timeRemaining: () => number;
-  }
-  
-  // Instead of extending Window, define a standalone interface
-  interface WindowWithIdleCallback {
-    requestIdleCallback: (callback: (deadline: RequestIdleCallbackDeadline) => void, opts?: RequestIdleCallbackOptions) => number;
-    cancelIdleCallback: (handle: number) => void;
-  }
-  
-  // Intersection Observer for lazy loading sections
-  useEffect(() => {
-    if (!isLoaded || !imagesLoaded) return;
-    
-    // Optimize observer options for mobile
-    const observerOptions = {
-      root: null,
-      // Increase rootMargin on mobile to start loading earlier when scrolling
-      rootMargin: isMobile ? '100px' : '0px',
-      threshold: isMobile ? 0.05 : 0.1
-    };
-    
-    // Use requestIdleCallback on non-mobile devices for better performance
-    const handleIntersection = (entries: IntersectionObserverEntry[]) => {
-      const updateVisibility = () => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting && entry.target.id) {
-            setVisibleSections(prev => new Set(prev).add(entry.target.id));
-          }
-        });
-      };
-      
-      if (!isMobile && 'requestIdleCallback' in window) {
-        // Use proper typing for requestIdleCallback
-        (window as unknown as WindowWithIdleCallback).requestIdleCallback(updateVisibility);
-      } else {
-        updateVisibility();
-      }
-    };
-    
-    const sectionObserver = new IntersectionObserver(handleIntersection, observerOptions);
-    
-    // Observe all sections
-    document.querySelectorAll('section[id]').forEach(section => {
-      sectionObserver.observe(section);
-    });
-    
-    return () => sectionObserver.disconnect();
-  }, [isLoaded, imagesLoaded, isMobile]);
-
   return (
-    <main className="min-h-screen bg-black pt-16 sm:pt-20 md:pt-0" style={{ backgroundColor: '#000', overscrollBehavior: 'none' }}>
+    <main className="min-h-screen bg-black">
       {/* Hero Section */}
-      {!imagesLoaded && (
-        <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-3 sm:border-4 border-indigo-500 border-t-transparent animate-spin" style={{ willChange: 'transform' }}></div>
-        </div>
-      )}
-      <section id="hero" className="relative bg-gradient-to-br from-black via-gray-900/95 to-gray-900/90 overflow-hidden mt-4 sm:mt-6 md:mt-0">
-        {/* Skip to main content link for accessibility */}
+      <section id="hero" className="relative bg-gradient-to-br from-black via-gray-900/95 to-gray-900/90 overflow-hidden">
         <a href="#courses" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-md">
           Skip to main content
         </a>
-        {/* Subtle color accents */}
+        
+        {/* Static gradient background on mobile, animated on desktop */}
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/10 via-violet-950/5 to-transparent pointer-events-none"></div>
-        {/* Animated background blobs - optimized for performance */}
-        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 md:animate-blob hidden md:block" style={{ willChange: 'transform, opacity' }}></div>
-        <div className="absolute top-0 -right-4 w-72 h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 md:animate-blob md:animate-delay-200 hidden md:block" style={{ willChange: 'transform, opacity' }}></div>
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 md:animate-blob md:animate-delay-400 hidden md:block" style={{ willChange: 'transform, opacity' }}></div>
         
-        <div 
-          className="absolute inset-0 opacity-10 bg-cover bg-center bg-black" 
-          style={{
-            backgroundImage: imagesLoaded ? "url('/images/HERO.avif')" : 'none',
-            backgroundColor: '#000',
-            willChange: 'opacity',
-            transform: 'translateZ(0)' // Force GPU acceleration for smoother rendering
-          }} 
-          aria-hidden="true" 
-          role="presentation"
-        ></div>
+        {/* Simplified blobs for mobile */}
+        {!isMobileDevice && !shouldReduceMotion && (
+          <>
+            <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+            <div className="absolute top-0 -right-4 w-72 h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animate-delay-200"></div>
+            <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animate-delay-400"></div>
+          </>
+        )}
         
-        {/* Subtle SVG pattern for extra depth */}
-        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-          <svg width="100%" height="100%" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-                <circle cx="1" cy="1" r="1" fill="#fff" opacity="0.1" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#dots)" />
-          </svg>
-        </div>
+        <div className="absolute inset-0 bg-[url('/images/HERO.avif')] opacity-10 bg-cover bg-center" aria-hidden="true" role="presentation"></div>
         
-        {/* Glassmorphism overlay */}
+        {/* Remove pattern on mobile */}
+        {!isMobileDevice && (
+          <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+            <svg width="100%" height="100%" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <pattern id="dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+                  <circle cx="1" cy="1" r="1" fill="#fff" opacity="0.1" />
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#dots)" />
+            </svg>
+          </div>
+        )}
+        
         <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
         
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative py-10 sm:py-16 md:py-32 flex flex-col items-center justify-center">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative py-20 md:py-32 flex flex-col items-center justify-center">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center px-3 sm:px-4 py-2 sm:py-2.5 rounded-full bg-indigo-500/30 backdrop-blur-sm border border-indigo-400/50 text-indigo-100 mb-4 sm:mb-6 md:mb-8 md:animate-fade-in sm:mt-10" style={{ willChange: 'opacity, transform' }}>
-              <span className="flex h-2 w-2 rounded-full bg-indigo-300 md:animate-pulse mr-2"></span>
+            <div className={`inline-flex items-center px-4 py-2 rounded-full bg-indigo-500/30 backdrop-blur-sm border border-indigo-400/50 text-indigo-100 mb-8 ${!shouldReduceMotion ? 'animate-fade-in' : ''} sm:mt-10`}>
+              <span className={`flex h-2 w-2 rounded-full bg-indigo-300 ${!shouldReduceMotion ? 'animate-pulse' : ''} mr-2`}></span>
               Trusted by 50,000+ BTech students worldwide
             </div>
-            <h1 className="text-3xl sm:text-5xl md:text-7xl font-extrabold text-white mb-4 sm:mb-6 md:mb-8 tracking-tight md:animate-fade-in md:animate-delay-100 drop-shadow-lg" style={{ willChange: 'opacity' }}>
+            <h1 className={`text-5xl md:text-7xl font-extrabold text-white mb-8 tracking-tight ${!shouldReduceMotion ? 'animate-fade-in animate-delay-100' : ''} drop-shadow-lg`}>
               Transform Your
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-500 mt-2 md:animate-pulse-slow leading-[1.2] py-1">
+              <span className={`block text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-500 mt-2 ${!shouldReduceMotion ? 'animate-pulse-slow' : ''} leading-[1.2] py-1`}>
                 Engineering Journey
               </span>
             </h1>
-            <div className="flex justify-center mt-6 sm:mt-8 mb-3 md:animate-fade-in md:animate-delay-200" style={{ willChange: 'opacity' }}>
-              <span className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 text-white font-semibold shadow-lg backdrop-blur-sm text-base md:text-lg md:animate-float">
+            <div className={`flex justify-center mt-8 mb-3 ${!shouldReduceMotion ? 'animate-fade-in animate-delay-200' : ''}`}>
+              <span className={`inline-block px-4 py-2 rounded-full bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 text-white font-semibold shadow-lg backdrop-blur-sm text-base md:text-lg ${!shouldReduceMotion ? 'animate-float' : ''}`}>
                 Empowering Future Engineers
               </span>
             </div>
-            <p className="text-base sm:text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto mb-6 sm:mb-8 md:mb-12 leading-relaxed md:animate-fade-in md:animate-delay-200" style={{ willChange: 'opacity' }}>
+            <p className={`text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto mb-12 leading-relaxed ${!shouldReduceMotion ? 'animate-fade-in animate-delay-200' : ''}`}>
               Access world-class engineering education with interactive courses, AI-powered learning, and a global community of peers and mentors.
             </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 md:animate-fade-in-up md:animate-delay-300" style={{ willChange: 'opacity, transform' }}>
+            <div className={`flex flex-col sm:flex-row justify-center gap-6 ${!shouldReduceMotion ? 'animate-fade-in-up animate-delay-300' : ''}`}>
               <Link
                 to="/courses"
-                className="w-full sm:w-auto px-5 sm:px-8 py-3.5 sm:py-4 bg-white/10 text-white border border-white/30 rounded-xl hover:bg-white/20 transition-all duration-300 flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl text-center"
+                className="px-8 py-4 bg-white/10 text-white border border-white/30 rounded-xl hover:bg-white/20 transition-all duration-300 flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl"
                 aria-label="Explore all available courses"
               >
                 Explore Courses
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className={`ml-2 h-5 w-5 ${!shouldReduceMotion ? 'group-hover:translate-x-1 transition-transform' : ''}`} />
               </Link>
               <Link
                 to="/register"
-                className="w-full sm:w-auto px-5 sm:px-8 py-3.5 sm:py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl transition-all duration-300 text-center"
+                className="px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl transition-all duration-300"
                 aria-label="Start your free trial"
               >
                 Start Free Trial
@@ -296,32 +150,25 @@ export function Home() {
           </div>
         </div>
         
-        {/* Stats Bar */}
+        {/* Stats Bar - simplified for mobile */}
         <div className="relative bg-gradient-to-r from-black/90 via-gray-900/80 to-black/90 backdrop-blur-xl border-y border-gray-800/30 shadow-lg" aria-labelledby="stats-bar-heading">
-          {/* Subtle decorative elements */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-24 -left-24 w-48 h-48 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 md:animate-pulse-glow hidden md:block"></div>
-            <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-violet-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 md:animate-pulse-glow md:animation-delay-700 hidden md:block"></div>
-            <svg width="100%" height="100%" className="w-full h-full opacity-5" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern id="stats-dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-                  <circle cx="1" cy="1" r="0.5" fill="#fff" />
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#stats-dots)" />
-            </svg>
-          </div>
+          {!isMobileDevice && (
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute -top-24 -left-24 w-48 h-48 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-pulse-glow"></div>
+              <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-violet-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-pulse-glow animation-delay-700"></div>
+            </div>
+          )}
           
-          <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-10 md:py-16 relative z-10">
-            <h2 id="stats-bar-heading" className="text-2xl sm:text-3xl font-bold mb-4 text-white">Our Impact</h2>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 relative z-10">
+            <h2 id="stats-bar-heading" className="text-3xl font-bold mb-4 text-white">Our Impact</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-y-10 gap-x-6 md:gap-x-8 lg:gap-x-12">
               {STATS.map((stat, index) => (
-                <div key={index} className={`text-center group animate-count-up-delay-${index}`}>
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-violet-500/10 mb-4 group-hover:from-indigo-500/30 group-hover:to-violet-500/20 transition-all duration-300 backdrop-blur-sm border border-indigo-500/10 group-hover:border-indigo-500/30 shadow-lg group-hover:shadow-indigo-500/10">
-                    <stat.icon className="w-7 h-7 text-indigo-400 group-hover:text-indigo-300 transition-colors duration-300" />
+                <div key={index} className={`text-center group ${!shouldReduceMotion ? (index === 0 ? 'animate-count-up-delay-0' : index === 1 ? 'animate-count-up-delay-1' : index === 2 ? 'animate-count-up-delay-2' : 'animate-count-up-delay-3') : ''}`}>
+                  <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-violet-500/10 mb-4 ${!isMobileDevice ? 'group-hover:from-indigo-500/30 group-hover:to-violet-500/20 transition-all duration-300' : ''} backdrop-blur-sm border border-indigo-500/10 shadow-lg`}>
+                    <stat.icon className={`w-7 h-7 text-indigo-400 ${!isMobileDevice ? 'group-hover:text-indigo-300 transition-colors duration-300' : ''}`} />
                   </div>
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-indigo-100 mb-2">{stat.value}</div>
-                  <div className="text-slate-300 text-xs sm:text-sm md:text-base font-medium">{stat.label}</div>
+                  <div className="text-3xl sm:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-indigo-100 mb-2">{stat.value}</div>
+                  <div className="text-slate-300 text-sm sm:text-base font-medium">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -329,227 +176,124 @@ export function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Features Section - optimized for mobile */}
       <section id="features" className="py-32 relative bg-gradient-to-br from-black via-gray-950 to-black overflow-hidden" aria-labelledby="features-heading">
-        {/* Background decorative elements */}
-        <div className="absolute top-0 -right-4 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 md:animate-blob md:animate-delay-2000 hidden md:block"></div>
-        <div className="absolute bottom-0 -left-4 w-72 h-72 bg-violet-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 md:animate-blob hidden md:block"></div>
+        {!isMobileDevice && (
+          <>
+            <div className="absolute top-0 -right-4 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob animate-delay-2000"></div>
+            <div className="absolute bottom-0 -left-4 w-72 h-72 bg-violet-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob"></div>
+          </>
+        )}
         
-        {/* Subtle SVG pattern for extra depth */}
-        <div className="absolute inset-0 pointer-events-none">
-          <svg width="100%" height="100%" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="features-dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-                <circle cx="1" cy="1" r="1" fill="#fff" opacity="0.05" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#features-dots)" />
-          </svg>
-        </div>
-        <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 md:mb-20">
-            <h2 id="features-heading" className="text-3xl sm:text-4xl font-bold mb-4 md:mb-6 text-white">A Revolutionary Learning Experience</h2>
-            <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-2xl mx-auto">Our platform combines cutting-edge technology with proven pedagogical methods</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-20">
+            <h2 id="features-heading" className="text-4xl font-bold mb-6 text-white">A Revolutionary Learning Experience</h2>
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">Our platform combines cutting-edge technology with proven pedagogical methods</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* HD Video Lectures */}
-            <div className="group relative p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-black via-gray-900/95 to-gray-900/90 backdrop-blur-xl border border-gray-800/30 md:hover:border-blue-500/50 transition-all duration-500 md:hover:-translate-y-2 shadow-lg md:shadow-[0_10px_40px_-15px_rgba(59,130,246,0.2)] md:hover:shadow-[0_20px_40px_-15px_rgba(59,130,246,0.3)]">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-3xl opacity-0 md:group-hover:opacity-100 transition-opacity duration-500 hidden md:block"></div>
-              <div className="absolute -inset-0.5 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-[24px] blur-xl opacity-0 md:group-hover:opacity-70 transition-all duration-500 -z-10 hidden md:block"></div>
-              <div className="absolute right-0 bottom-0 w-32 h-32 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 md:group-hover:opacity-10 transition-opacity duration-500 hidden md:block"></div>
-              <div className="relative z-10">
-                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 p-3 mb-8 md:group-hover:scale-110 transition-transform duration-500 shadow-lg">
-                  <Video className="w-full h-full text-white" />
+            {[
+              {
+                icon: Video,
+                title: 'HD Video Lectures',
+                description: 'Crystal-clear explanations from world-class professors with interactive transcripts',
+                features: ['4K quality videos', 'Downloadable content', 'Closed captions'],
+                gradient: 'from-blue-500 to-indigo-600',
+                bgHover: 'from-blue-500/10 to-purple-500/10',
+                iconColor: 'text-blue-400'
+              },
+              {
+                icon: Code,
+                title: 'Live Coding Labs',
+                description: 'Interactive coding environments with AI-powered feedback and assistance',
+                features: ['Real-time compilation', 'AI code analysis', 'Instant feedback'],
+                gradient: 'from-purple-500 to-pink-600',
+                bgHover: 'from-purple-500/10 to-pink-500/10',
+                iconColor: 'text-purple-400'
+              },
+              {
+                icon: Brain,
+                title: 'AI-Powered Learning',
+                description: 'Personalized learning paths that adapt to your pace and style',
+                features: ['Adaptive learning', 'Smart recommendations', 'Progress tracking'],
+                gradient: 'from-cyan-500 to-blue-600',
+                bgHover: 'from-cyan-500/10 to-blue-500/10',
+                iconColor: 'text-cyan-400'
+              },
+              {
+                icon: Users,
+                title: 'Peer Collaboration',
+                description: 'Study groups, discussion forums, and real-time collaboration tools',
+                features: ['Study groups', 'Live discussions', 'Project collaboration'],
+                gradient: 'from-green-500 to-emerald-600',
+                bgHover: 'from-green-500/10 to-emerald-500/10',
+                iconColor: 'text-green-400'
+              },
+              {
+                icon: Award,
+                title: 'Industry Certifications',
+                description: 'Earn recognized certificates to showcase your expertise',
+                features: ['Verified certificates', 'Industry recognized', 'LinkedIn integration'],
+                gradient: 'from-yellow-500 to-orange-600',
+                bgHover: 'from-yellow-500/10 to-orange-500/10',
+                iconColor: 'text-yellow-400'
+              },
+              {
+                icon: BookOpen,
+                title: 'Rich Resources',
+                description: 'Comprehensive study materials, notes, and project templates',
+                features: ['Study materials', 'Cheat sheets', 'Project templates'],
+                gradient: 'from-rose-500 to-pink-600',
+                bgHover: 'from-rose-500/10 to-pink-500/10',
+                iconColor: 'text-rose-400'
+              }
+            ].map((feature, index) => (
+              <div 
+                key={index} 
+                className={`group relative p-8 rounded-3xl bg-gradient-to-br from-black/80 to-gray-900/40 backdrop-blur-xl border border-gray-800/30 ${!isMobileDevice ? 'hover:border-blue-500/50 hover:-translate-y-2' : ''} transition-all duration-500`}
+              >
+                {!isMobileDevice && (
+                  <div className={`absolute inset-0 bg-gradient-to-br ${feature.bgHover} rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
+                )}
+                <div className="relative z-10">
+                  <div className={`h-16 w-16 rounded-2xl bg-gradient-to-br ${feature.gradient} p-3 mb-8 ${!isMobileDevice ? 'group-hover:scale-110' : ''} transition-transform duration-500 shadow-lg`}>
+                    <feature.icon className="w-full h-full text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-4">{feature.title}</h3>
+                  <p className="text-gray-300 leading-relaxed mb-6">{feature.description}</p>
+                  <ul className="space-y-3">
+                    {feature.features.map((item, i) => (
+                      <li key={i} className="flex items-center text-gray-400">
+                        <Check className={`w-5 h-5 ${feature.iconColor} mr-3`} />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 md:mb-4">HD Video Lectures</h3>
-                <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-4 md:mb-6">Crystal-clear explanations from world-class professors with interactive transcripts</p>
-                <ul className="space-y-3">
-                  <li className="flex items-center text-gray-400">
-                    <Check className="w-5 h-5 text-blue-400 mr-3" />
-                    4K quality videos
-                  </li>
-                  <li className="flex items-center text-gray-400">
-                    <Check className="w-5 h-5 text-blue-400 mr-3" />
-                    Downloadable content
-                  </li>
-                  <li className="flex items-center text-gray-400">
-                    <Check className="w-5 h-5 text-blue-400 mr-3" />
-                    Closed captions
-                  </li>
-                </ul>
               </div>
-            </div>
-            
-            {/* Live Coding Labs */}
-            <div className="group relative p-8 rounded-3xl bg-gradient-to-br from-black via-gray-900/95 to-gray-900/90 backdrop-blur-xl border border-gray-800/30 md:hover:border-purple-500/50 transition-all duration-500 md:hover:-translate-y-2 shadow-lg md:shadow-[0_10px_40px_-15px_rgba(168,85,247,0.2)] md:hover:shadow-[0_20px_40px_-15px_rgba(168,85,247,0.3)]">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-3xl opacity-0 md:group-hover:opacity-100 transition-opacity duration-500 hidden md:block"></div>
-              <div className="absolute -inset-0.5 bg-gradient-to-br from-purple-500/5 to-pink-500/5 rounded-[24px] blur-xl opacity-0 md:group-hover:opacity-70 transition-all duration-500 -z-10 hidden md:block"></div>
-              <div className="absolute right-0 bottom-0 w-32 h-32 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 md:group-hover:opacity-10 transition-opacity duration-500 hidden md:block"></div>
-              <div className="relative z-10">
-                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 p-3 mb-8 md:group-hover:scale-110 transition-transform duration-500 shadow-lg">
-                  <Code className="w-full h-full text-white" />
-                </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 md:mb-4">Live Coding Labs</h3>
-                <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-4 md:mb-6">Interactive coding environments with AI-powered feedback and assistance</p>
-                <ul className="space-y-3">
-                  <li className="flex items-center text-gray-400">
-                    <Check className="w-5 h-5 text-purple-400 mr-3" />
-                    Real-time compilation
-                  </li>
-                  <li className="flex items-center text-gray-400">
-                    <Check className="w-5 h-5 text-purple-400 mr-3" />
-                    AI code analysis
-                  </li>
-                  <li className="flex items-center text-gray-400">
-                    <Check className="w-5 h-5 text-purple-400 mr-3" />
-                    Instant feedback
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* AI-Powered Learning */}
-            <div className="group relative p-8 rounded-3xl bg-gradient-to-br from-black via-gray-900/95 to-gray-900/90 backdrop-blur-xl border border-gray-800/30 md:hover:border-cyan-500/50 transition-all duration-500 md:hover:-translate-y-2 shadow-lg md:shadow-[0_10px_40px_-15px_rgba(6,182,212,0.2)] md:hover:shadow-[0_20px_40px_-15px_rgba(6,182,212,0.3)]">
-              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-3xl opacity-0 md:group-hover:opacity-100 transition-opacity duration-500 hidden md:block"></div>
-              <div className="absolute -inset-0.5 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 rounded-[24px] blur-xl opacity-0 md:group-hover:opacity-70 transition-all duration-500 -z-10 hidden md:block"></div>
-              <div className="absolute right-0 bottom-0 w-32 h-32 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 md:group-hover:opacity-10 transition-opacity duration-500 hidden md:block"></div>
-              <div className="relative z-10">
-                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 p-3 mb-8 md:group-hover:scale-110 transition-transform duration-500 shadow-lg">
-                  <Brain className="w-full h-full text-white" />
-                </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 md:mb-4">AI-Powered Learning</h3>
-                <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-4 md:mb-6">Personalized learning paths that adapt to your pace and style</p>
-                <ul className="space-y-3">
-                  <li className="flex items-center text-gray-400">
-                    <Check className="w-5 h-5 text-cyan-400 mr-3" />
-                    Adaptive learning
-                  </li>
-                  <li className="flex items-center text-gray-400">
-                    <Check className="w-5 h-5 text-cyan-400 mr-3" />
-                    Smart recommendations
-                  </li>
-                  <li className="flex items-center text-gray-400">
-                    <Check className="w-5 h-5 text-cyan-400 mr-3" />
-                    Progress tracking
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Peer Collaboration */}
-            <div className="group relative p-8 rounded-3xl bg-gradient-to-br from-black via-gray-900/95 to-gray-900/90 backdrop-blur-xl border border-gray-800/30 md:hover:border-green-500/50 transition-all duration-500 md:hover:-translate-y-2 shadow-lg md:shadow-[0_10px_40px_-15px_rgba(34,197,94,0.2)] md:hover:shadow-[0_20px_40px_-15px_rgba(34,197,94,0.3)]">
-              <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-3xl opacity-0 md:group-hover:opacity-100 transition-opacity duration-500 hidden md:block"></div>
-              <div className="absolute -inset-0.5 bg-gradient-to-br from-green-500/5 to-emerald-500/5 rounded-[24px] blur-xl opacity-0 md:group-hover:opacity-70 transition-all duration-500 -z-10 hidden md:block"></div>
-              <div className="absolute right-0 bottom-0 w-32 h-32 bg-green-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 md:group-hover:opacity-10 transition-opacity duration-500 hidden md:block"></div>
-              <div className="relative z-10">
-                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 p-3 mb-8 md:group-hover:scale-110 transition-transform duration-500 shadow-lg">
-                  <Users className="w-full h-full text-white" />
-                </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 md:mb-4">Peer Collaboration</h3>
-                <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-4 md:mb-6">Study groups, discussion forums, and real-time collaboration tools</p>
-                <ul className="space-y-3">
-                  <li className="flex items-center text-gray-400">
-                    <Check className="w-5 h-5 text-green-400 mr-3" />
-                    Study groups
-                  </li>
-                  <li className="flex items-center text-gray-400">
-                    <Check className="w-5 h-5 text-green-400 mr-3" />
-                    Live discussions
-                  </li>
-                  <li className="flex items-center text-gray-400">
-                    <Check className="w-5 h-5 text-green-400 mr-3" />
-                    Project collaboration
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Industry Certifications */}
-            <div className="group relative p-8 rounded-3xl bg-gradient-to-br from-black via-gray-900/95 to-gray-900/90 backdrop-blur-xl border border-gray-800/30 md:hover:border-yellow-500/50 transition-all duration-500 md:hover:-translate-y-2 shadow-lg md:shadow-[0_10px_40px_-15px_rgba(234,179,8,0.2)] md:hover:shadow-[0_20px_40px_-15px_rgba(234,179,8,0.3)]">
-              <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-orange-500/10 rounded-3xl opacity-0 md:group-hover:opacity-100 transition-opacity duration-500 hidden md:block"></div>
-              <div className="absolute -inset-0.5 bg-gradient-to-br from-yellow-500/5 to-orange-500/5 rounded-[24px] blur-xl opacity-0 md:group-hover:opacity-70 transition-all duration-500 -z-10 hidden md:block"></div>
-              <div className="absolute right-0 bottom-0 w-32 h-32 bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 md:group-hover:opacity-10 transition-opacity duration-500 hidden md:block"></div>
-              <div className="relative z-10">
-                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-yellow-500 to-orange-600 p-3 mb-8 md:group-hover:scale-110 transition-transform duration-500 shadow-lg">
-                  <Award className="w-full h-full text-white" />
-                </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 md:mb-4">Industry Certifications</h3>
-                <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-4 md:mb-6">Earn recognized certificates to showcase your expertise</p>
-                <ul className="space-y-3">
-                  <li className="flex items-center text-gray-400">
-                    <Check className="w-5 h-5 text-yellow-400 mr-3" />
-                    Verified certificates
-                  </li>
-                  <li className="flex items-center text-gray-400">
-                    <Check className="w-5 h-5 text-yellow-400 mr-3" />
-                    Industry recognized
-                  </li>
-                  <li className="flex items-center text-gray-400">
-                    <Check className="w-5 h-5 text-yellow-400 mr-3" />
-                    LinkedIn integration
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Rich Resources */}
-            <div className="group relative p-8 rounded-3xl bg-gradient-to-br from-black via-gray-900/95 to-gray-900/90 backdrop-blur-xl border border-gray-800/30 md:hover:border-rose-500/50 transition-all duration-500 md:hover:-translate-y-2 shadow-lg md:shadow-[0_10px_40px_-15px_rgba(225,29,72,0.2)] md:hover:shadow-[0_20px_40px_-15px_rgba(225,29,72,0.3)]">
-              <div className="absolute inset-0 bg-gradient-to-br from-rose-500/10 to-pink-500/10 rounded-3xl opacity-0 md:group-hover:opacity-100 transition-opacity duration-500 hidden md:block"></div>
-              <div className="absolute -inset-0.5 bg-gradient-to-br from-rose-500/5 to-pink-500/5 rounded-[24px] blur-xl opacity-0 md:group-hover:opacity-70 transition-all duration-500 -z-10 hidden md:block"></div>
-              <div className="absolute right-0 bottom-0 w-32 h-32 bg-rose-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 md:group-hover:opacity-10 transition-opacity duration-500 hidden md:block"></div>
-              <div className="relative z-10">
-                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 p-3 mb-8 md:group-hover:scale-110 transition-transform duration-500 shadow-lg">
-                  <BookOpen className="w-full h-full text-white" />
-                </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 md:mb-4">Rich Resources</h3>
-                <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-4 md:mb-6">Comprehensive study materials, notes, and project templates</p>
-                <ul className="space-y-3">
-                  <li className="flex items-center text-gray-400">
-                    <Check className="w-5 h-5 text-rose-400 mr-3" />
-                    Study materials
-                  </li>
-                  <li className="flex items-center text-gray-400">
-                    <Check className="w-5 h-5 text-rose-400 mr-3" />
-                    Cheat sheets
-                  </li>
-                  <li className="flex items-center text-gray-400">
-                    <Check className="w-5 h-5 text-rose-400 mr-3" />
-                    Project templates
-                  </li>
-                </ul>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-    {/* Popular Courses Section */}
-    <section id="courses" className="py-32 relative bg-gradient-to-br from-black via-gray-950/90 to-black overflow-hidden" aria-labelledby="courses-heading">
-      {/* Background decorative elements */}
-      <div className="absolute top-0 -left-4 w-72 h-72 bg-violet-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 md:animate-blob md:animate-delay-4000 hidden md:block"></div>
-      <div className="absolute bottom-0 right-20 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 md:animate-blob md:animate-delay-1000 hidden md:block"></div>
-      
-      {/* Subtle SVG pattern for extra depth */}
-      <div className="absolute inset-0 pointer-events-none">
-        <svg width="100%" height="100%" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="courses-dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-              <circle cx="1" cy="1" r="1" fill="#fff" opacity="0.05" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#courses-dots)" />
-        </svg>
-      </div>
-        <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-10 md:mb-16">
+      {/* Popular Courses Section - optimized */}
+      <section id="courses" className="py-32 relative bg-gradient-to-br from-black via-gray-950/90 to-black overflow-hidden" aria-labelledby="courses-heading">
+        {!isMobileDevice && (
+          <>
+            <div className="absolute top-0 -left-4 w-72 h-72 bg-violet-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob animate-delay-4000"></div>
+            <div className="absolute bottom-0 right-20 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob animate-delay-1000"></div>
+          </>
+        )}
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center mb-16">
             <div>
               <div className="inline-flex items-center px-4 py-2 rounded-full bg-indigo-500/10 text-indigo-300 mb-6">
                 <Globe className="w-4 h-4 mr-2" />
                 <span className="text-sm font-medium">Popular Courses</span>
               </div>
-              <h2 id="courses-heading" className="text-3xl sm:text-4xl font-bold mb-3 md:mb-4 text-white">Start Your Learning Journey</h2>
-              <p className="text-base sm:text-lg md:text-xl text-slate-300">Begin with our most sought-after programs</p>
+              <h2 id="courses-heading" className="text-4xl font-bold mb-4 text-white">Start Your Learning Journey</h2>
+              <p className="text-xl text-slate-300">Begin with our most sought-after programs</p>
             </div>
             <Link 
               to="/courses" 
@@ -557,89 +301,85 @@ export function Home() {
               aria-label="View all available courses"
             >
               View All Courses 
-              <ArrowRight className="ml-2 h-5 w-5 transform group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className={`ml-2 h-5 w-5 ${!shouldReduceMotion ? 'transform group-hover:translate-x-1 transition-transform' : ''}`} />
             </Link>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {FEATURED_COURSES.map(course => (
-              <div key={course.id} className="group relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-black via-gray-900/95 to-gray-900/90 backdrop-blur-xl border border-gray-800/50 md:hover:border-indigo-500/50 transition-all duration-300 shadow-lg hover:shadow-xl will-change-transform">
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-violet-500/5 opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 hidden md:block will-change-opacity"></div>
+              <div key={course.id} className={`group relative rounded-3xl overflow-hidden bg-black/70 backdrop-blur-xl border border-gray-800/50 ${!isMobileDevice ? 'hover:border-indigo-500/50' : ''} transition-all duration-300 shadow-lg`}>
+                {!isMobileDevice && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                )}
                 <div className="relative">
-                  <div className="relative h-48 sm:h-56 overflow-hidden bg-gray-900">
-                      <div 
-                       className="w-full h-full bg-gray-900 flex items-center justify-center"
-                       style={{
-                         backgroundImage: imagesLoaded ? `url(${course.thumbnail})` : 'none',
-                         backgroundSize: 'cover',
-                         backgroundPosition: 'center'
-                       }}
-                     >
-                       {!imagesLoaded && (
-                         <div className="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin"></div>
-                       )}
-                     </div>
+                  <div className="relative h-56 overflow-hidden">
+                    <img
+                      src={course.thumbnail}
+                      alt={course.title}
+                      className={`w-full h-full object-cover ${!isMobileDevice ? 'transform group-hover:scale-110 transition-transform duration-700' : ''}`}
+                      loading="lazy"
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent"></div>
-                    <div className="absolute top-3 sm:top-4 left-3 sm:left-4">
-                      <span className="px-2.5 sm:px-3 py-1 bg-indigo-500/90 backdrop-blur-sm text-white text-xs sm:text-sm font-medium rounded-full shadow-sm">
+                    <div className="absolute top-4 left-4">
+                      <span className="px-3 py-1 bg-indigo-500/90 backdrop-blur-sm text-white text-sm font-medium rounded-full">
                         {course.category}
                       </span>
                     </div>
-                    <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 flex items-center justify-between">
-                      <span className="px-2.5 sm:px-3 py-0.5 sm:py-1 bg-white/10 backdrop-blur-sm text-white text-xs sm:text-sm font-medium rounded-full shadow-sm">
+                    <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+                      <span className="px-3 py-1 bg-white/10 backdrop-blur-sm text-white text-sm font-medium rounded-full">
                         {course.level}
                       </span>
-                      <span className="px-2.5 sm:px-3 py-0.5 sm:py-1 bg-white/10 backdrop-blur-sm text-white text-xs sm:text-sm font-medium rounded-full shadow-sm">
+                      <span className="px-3 py-1 bg-white/10 backdrop-blur-sm text-white text-sm font-medium rounded-full">
                         {course.duration}
                       </span>
                     </div>
                   </div>
                   
-                  <div className="p-4 sm:p-6 md:p-8">
-                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4">
+                  <div className="p-8">
+                    <div className="flex items-center gap-2 mb-4">
                       {course.tags.map((tag, index) => (
-                        <span key={index} className="px-2 py-0.5 bg-indigo-500/10 text-indigo-300 text-xs font-medium rounded-full">
+                        <span key={index} className="px-2 py-1 bg-indigo-500/10 text-indigo-300 text-xs font-medium rounded-full">
                           {tag}
                         </span>
                       ))}
                     </div>
                     
-                    <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 md:group-hover:text-indigo-400 transition-colors line-clamp-1 sm:line-clamp-2">
+                    <h3 className={`text-xl font-bold text-white mb-3 ${!isMobileDevice ? 'group-hover:text-indigo-400' : ''} transition-colors`}>
                       {course.title}
                     </h3>
-                    <p className="text-slate-300 mb-4 sm:mb-6 text-sm sm:text-base line-clamp-2 leading-relaxed">{course.description}</p>
+                    <p className="text-slate-300 mb-6 line-clamp-2">{course.description}</p>
                     
-                    <div className="flex items-center justify-between mb-4 sm:mb-6">
+                    <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center">
-                        <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold mr-2 sm:mr-3 shadow-md">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold mr-3">
                           {course.instructor.charAt(0)}
                         </div>
                         <div>
-                          <div className="text-xs sm:text-sm font-medium text-white truncate max-w-[100px] sm:max-w-[120px]">{course.instructor}</div>
-                          <div className="text-[10px] sm:text-xs text-slate-400">Instructor</div>
+                          <div className="text-sm font-medium text-white">{course.instructor}</div>
+                          <div className="text-xs text-slate-400">Instructor</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 fill-yellow-400" />
-                        <span className="text-white font-medium text-sm sm:text-base">{course.rating}</span>
-                        <span className="text-slate-400 text-xs sm:text-sm hidden xs:inline">({course.students})</span>
+                        <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                        <span className="text-white font-medium">{course.rating}</span>
+                        <span className="text-slate-400 text-sm">({course.students})</span>
                       </div>
                     </div>
                     
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
+                    <div className="flex items-center gap-4 mb-6">
                       {course.features.map((feature, index) => (
-                        <div key={index} className="flex items-center text-slate-400 text-xs sm:text-sm">
-                          <Check className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-400 mr-1" />
-                          <span className="truncate">{feature}</span>
+                        <div key={index} className="flex items-center text-slate-400 text-sm">
+                          <Check className="w-4 h-4 text-indigo-400 mr-1" />
+                          {feature}
                         </div>
                       ))}
                     </div>
                     
-                    <div className="flex items-center justify-between pt-4 sm:pt-6 border-t border-slate-700/50">
-                      <div className="text-2xl sm:text-3xl font-bold text-transparent bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text">
+                    <div className="flex items-center justify-between pt-6 border-t border-slate-700/50">
+                      <div className="text-3xl font-bold text-transparent bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text">
                         {course.price}
                       </div>
-                      <button className="px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg sm:rounded-xl hover:from-indigo-700 hover:to-violet-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-indigo-500/25 text-xs sm:text-sm md:text-base whitespace-nowrap">
+                      <button className={`px-6 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl ${!isMobileDevice ? 'hover:from-indigo-700 hover:to-violet-700' : ''} transition-all duration-300 font-semibold shadow-lg`}>
                         Enroll Now
                       </button>
                     </div>
@@ -651,164 +391,139 @@ export function Home() {
         </div>
       </section>
 
-      
-        {/* Testimonials Section */}
-        <section id="testimonials" className="py-24 bg-gradient-to-br from-black via-gray-950/95 to-black section-padding relative overflow-hidden" aria-labelledby="testimonials-heading">
-          {/* Background decorative elements */}
-          <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 md:animate-blob hidden md:block"></div>
-          <div className="absolute bottom-0 -right-4 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 md:animate-blob md:animate-delay-2000 hidden md:block"></div>
+      {/* Testimonials Section - simplified for mobile */}
+      <section id="testimonials" className="py-24 bg-gradient-to-br from-black via-gray-950/95 to-black section-padding relative overflow-hidden" aria-labelledby="testimonials-heading">
+        {!isMobileDevice && (
+          <>
+            <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob"></div>
+            <div className="absolute bottom-0 -right-4 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob animate-delay-2000"></div>
+          </>
+        )}
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16 relative z-10">
+            <div className={`inline-flex items-center px-4 py-2 rounded-full bg-indigo-500/20 backdrop-blur-sm border border-indigo-400/30 text-indigo-100 mb-6 ${!shouldReduceMotion ? 'animate-fade-in' : ''}`}>
+              <span className={`flex h-2 w-2 rounded-full bg-indigo-300 ${!shouldReduceMotion ? 'animate-pulse' : ''} mr-2`}></span>
+              <span className="text-sm font-medium">Student Testimonials</span>
+            </div>
+            <h2 id="testimonials-heading" className="text-4xl font-bold mb-4 text-white">What Our Students Say</h2>
+            <p className="text-xl text-indigo-200/80 max-w-2xl mx-auto">Join thousands of satisfied learners who've transformed their careers with our comprehensive courses</p>
+          </div>
           
-          {/* Subtle SVG pattern for extra depth */}
-          <div className="absolute inset-0 pointer-events-none">
-            <svg width="100%" height="100%" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern id="testimonial-dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-                  <circle cx="1" cy="1" r="1" fill="#fff" opacity="0.05" />
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#testimonial-dots)" />
-            </svg>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                quote: "Genius transformed my understanding of complex algorithms. The interactive labs make learning both fun and effective.",
+                name: "Rahul Sharma",
+                role: "CS Student, IIT Delhi",
+                avatar: "/images/testimonials/user1.webp",
+                gradientId: "grad1",
+                gradientColors: ["#6366f1", "#a21caf"],
+                cardColor: "indigo"
+              },
+              {
+                quote: "The AI-powered feedback helped me identify gaps in my knowledge. I've improved drastically in just 3 months.",
+                name: "Priya Kapoor",
+                role: "ECE Student, BITS Pilani",
+                avatar: "/images/testimonials/user2.webp",
+                gradientId: "grad2",
+                gradientColors: ["#a21caf", "#6366f1"],
+                cardColor: "purple"
+              },
+              {
+                quote: "The community support is amazing. I found study partners and mentors who helped me excel in my courses.",
+                name: "Amit Verma",
+                role: "ME Student, NIT Trichy",
+                avatar: "/images/testimonials/user3.webp",
+                gradientId: "grad3",
+                gradientColors: ["#ec4899", "#6366f1"],
+                cardColor: "pink"
+              }
+            ].map((testimonial, index) => (
+              <div 
+                key={index} 
+                className={`relative rounded-3xl p-10 ${!isMobileDevice ? 'transition-transform duration-500 hover:scale-105' : ''} group overflow-hidden bg-black/60 backdrop-blur-xl border ${testimonial.cardColor === 'indigo' ? 'border-indigo-500/20' : testimonial.cardColor === 'purple' ? 'border-purple-500/20' : 'border-pink-500/20'} shadow-xl`}
+              >
+                {!isMobileDevice && (
+                  <div className="absolute -top-8 -left-8 opacity-10 group-hover:opacity-30 transition-all duration-500">
+                    <svg width="80" height="80" fill="none">
+                      <circle cx="40" cy="40" r="40" fill={`url(#${testimonial.gradientId})`} />
+                      <defs>
+                        <linearGradient id={testimonial.gradientId} x1="0" y1="0" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                          <stop stopColor={testimonial.gradientColors[0]}/>
+                          <stop offset="1" stopColor={testimonial.gradientColors[1]}/>
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </div>
+                )}
+                <div className="flex items-center mb-6 relative z-10">
+                  <div className={`p-2 rounded-lg ${testimonial.cardColor === 'indigo' ? 'bg-indigo-500/20' : testimonial.cardColor === 'purple' ? 'bg-purple-500/20' : 'bg-pink-500/20'} backdrop-blur-sm mr-3`}>
+                    <svg className={`${testimonial.cardColor === 'indigo' ? 'text-indigo-300' : testimonial.cardColor === 'purple' ? 'text-purple-300' : 'text-pink-300'} w-6 h-6`} fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M7.17 6.17A5.001 5.001 0 0 0 2 11.5C2 15.09 6.47 17.82 7.17 18.22c.18.1.39.1.57 0C9.53 17.82 14 15.09 14 11.5a5.001 5.001 0 0 0-5.17-5.33zM7 13a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm10-6.83A5.001 5.001 0 0 0 16 11.5c0 3.59 4.47 6.32 5.17 6.72.18.1.39.1.57 0 .7-.4 5.17-3.13 5.17-6.72a5.001 5.001 0 0 0-5.17-5.33zM17 13a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+                    </svg>
+                  </div>
+                  <div className="text-yellow-400 text-xl">★★★★★</div>
+                </div>
+                <p className="text-slate-300 mb-8 italic text-lg relative z-10 leading-relaxed">
+                  "{testimonial.quote}"
+                </p>
+                <div className="flex items-center relative z-10">
+                  <div className="relative mr-4">
+                    <img 
+                      src={testimonial.avatar} 
+                      alt={testimonial.name} 
+                      className={`h-16 w-16 rounded-full object-cover border-4 ${testimonial.cardColor === 'indigo' ? 'border-indigo-500/50' : testimonial.cardColor === 'purple' ? 'border-purple-500/50' : 'border-pink-500/50'} shadow-lg`}
+                      loading="lazy"
+                    />
+                    <span className="absolute -bottom-1 -right-1 block h-4 w-4 rounded-full bg-green-400 ring-2 ring-slate-800"></span>
+                  </div>
+                  <div>
+                    <div className={`font-bold ${testimonial.cardColor === 'indigo' ? 'text-indigo-300' : testimonial.cardColor === 'purple' ? 'text-purple-300' : 'text-pink-300'} text-lg`}>{testimonial.name}</div>
+                    <div className="text-sm text-slate-400">{testimonial.role}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-            <div className="text-center mb-16 relative z-10">
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-indigo-500/20 backdrop-blur-sm border border-indigo-400/30 text-indigo-100 mb-6 md:animate-fade-in">
-                <span className="flex h-2 w-2 rounded-full bg-indigo-300 md:animate-pulse mr-2"></span>
-                <span className="text-sm font-medium">Student Testimonials</span>
-              </div>
-              <h2 id="testimonials-heading" className="text-4xl font-bold mb-4 text-white">What Our Students Say</h2>
-              <p className="text-xl text-indigo-200/80 max-w-2xl mx-auto">Join thousands of satisfied learners who've transformed their careers with our comprehensive courses</p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="relative rounded-2xl sm:rounded-3xl p-6 sm:p-10 transition-transform duration-500 md:hover:scale-105 md:hover:shadow-indigo-500/30 md:animate-fade-in group overflow-hidden bg-gradient-to-br from-black via-gray-900/95 to-gray-900/90 backdrop-blur-xl border border-indigo-500/20 shadow-xl">
-                <div className="absolute -top-8 -left-8 opacity-10 md:group-hover:opacity-30 transition-all duration-500 hidden md:block">
-                  <svg width="80" height="80" fill="none"><circle cx="40" cy="40" r="40" fill="url(#grad1)" /><defs><linearGradient id="grad1" x1="0" y1="0" x2="80" y2="80" gradientUnits="userSpaceOnUse"><stop stopColor="#6366f1"/><stop offset="1" stopColor="#a21caf"/></linearGradient></defs></svg>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/5 to-purple-600/5 opacity-0 md:group-hover:opacity-100 transition-all duration-500 hidden md:block"></div>
-                <div className="flex items-center mb-6 relative z-10">
-                  <div className="p-2 rounded-lg bg-indigo-500/20 backdrop-blur-sm mr-3">
-                    <svg className="text-indigo-300 w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M7.17 6.17A5.001 5.001 0 0 0 2 11.5C2 15.09 6.47 17.82 7.17 18.22c.18.1.39.1.57 0C9.53 17.82 14 15.09 14 11.5a5.001 5.001 0 0 0-5.17-5.33zM7 13a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm10-6.83A5.001 5.001 0 0 0 16 11.5c0 3.59 4.47 6.32 5.17 6.72.18.1.39.1.57 0 .7-.4 5.17-3.13 5.17-6.72a5.001 5.001 0 0 0-5.17-5.33zM17 13a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
-                  </div>
-                  <div className="text-yellow-400 text-xl">★★★★★</div>
-                </div>
-                <p className="text-slate-300 mb-6 sm:mb-8 italic text-base sm:text-lg relative z-10 leading-relaxed">
-                  "Genius transformed my understanding of complex algorithms. The interactive labs make learning both fun and effective."
-                </p>
-                <div className="flex items-center relative z-10">
-                  <div className="relative mr-4">
-                    <img src="/images/testimonials/user1.webp" alt="Rahul Sharma" className="h-16 w-16 rounded-full object-cover border-4 border-indigo-500/50 shadow-lg md:group-hover:border-indigo-400 transition-colors duration-300" />
-                    <span className="absolute -bottom-1 -right-1 block h-4 w-4 rounded-full bg-green-400 ring-2 ring-slate-800"></span>
-                  </div>
-                  <div>
-                    <div className="font-bold text-indigo-300 text-lg">Rahul Sharma</div>
-                    <div className="text-sm text-slate-400">CS Student, IIT Delhi</div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="relative rounded-3xl p-10 transition-transform duration-500 md:hover:scale-105 md:hover:shadow-purple-500/30 md:animate-fade-in md:animate-delay-150 group overflow-hidden bg-gradient-to-br from-black via-gray-900/95 to-gray-900/90 backdrop-blur-xl border border-purple-500/20 shadow-xl">
-                <div className="absolute -top-8 -right-8 opacity-10 md:group-hover:opacity-30 transition-all duration-500 hidden md:block">
-                  <svg width="80" height="80" fill="none"><circle cx="40" cy="40" r="40" fill="url(#grad2)" /><defs><linearGradient id="grad2" x1="0" y1="0" x2="80" y2="80" gradientUnits="userSpaceOnUse"><stop stopColor="#a21caf"/><stop offset="1" stopColor="#6366f1"/></linearGradient></defs></svg>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-600/5 to-indigo-600/5 opacity-0 md:group-hover:opacity-100 transition-all duration-500 hidden md:block"></div>
-                <div className="flex items-center mb-6 relative z-10">
-                  <div className="p-2 rounded-lg bg-purple-500/20 backdrop-blur-sm mr-3">
-                    <svg className="text-purple-300 w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M7.17 6.17A5.001 5.001 0 0 0 2 11.5C2 15.09 6.47 17.82 7.17 18.22c.18.1.39.1.57 0C9.53 17.82 14 15.09 14 11.5a5.001 5.001 0 0 0-5.17-5.33zM7 13a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm10-6.83A5.001 5.001 0 0 0 16 11.5c0 3.59 4.47 6.32 5.17 6.72.18.1.39.1.57 0 .7-.4 5.17-3.13 5.17-6.72a5.001 5.001 0 0 0-5.17-5.33zM17 13a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
-                  </div>
-                  <div className="text-yellow-400 text-xl">★★★★★</div>
-                </div>
-                <p className="text-slate-300 mb-6 sm:mb-8 italic text-base sm:text-lg relative z-10 leading-relaxed">
-                  "The AI-powered feedback helped me identify gaps in my knowledge. I've improved drastically in just 3 months."
-                </p>
-                <div className="flex items-center relative z-10">
-                  <div className="relative mr-4">
-                    <img src="/images/testimonials/user2.webp" alt="Priya Kapoor" className="h-16 w-16 rounded-full object-cover border-4 border-purple-500/50 shadow-lg md:group-hover:border-purple-400 transition-colors duration-300" />
-                    <span className="absolute -bottom-1 -right-1 block h-4 w-4 rounded-full bg-green-400 ring-2 ring-slate-800"></span>
-                  </div>
-                  <div>
-                    <div className="font-bold text-purple-300 text-lg">Priya Kapoor</div>
-                    <div className="text-sm text-slate-400">ECE Student, BITS Pilani</div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="relative rounded-3xl p-10 transition-transform duration-500 md:hover:scale-105 md:hover:shadow-pink-500/30 md:animate-fade-in md:animate-delay-300 group overflow-hidden bg-gradient-to-br from-black via-gray-900/95 to-gray-900/90 backdrop-blur-xl border border-pink-500/20 shadow-xl">
-                <div className="absolute -bottom-8 -left-8 opacity-10 md:group-hover:opacity-30 transition-all duration-500 hidden md:block">
-                  <svg width="80" height="80" fill="none"><circle cx="40" cy="40" r="40" fill="url(#grad3)" /><defs><linearGradient id="grad3" x1="0" y1="0" x2="80" y2="80" gradientUnits="userSpaceOnUse"><stop stopColor="#ec4899"/><stop offset="1" stopColor="#6366f1"/></linearGradient></defs></svg>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-br from-pink-600/5 to-indigo-600/5 opacity-0 md:group-hover:opacity-100 transition-all duration-500 hidden md:block"></div>
-                <div className="flex items-center mb-6 relative z-10">
-                  <div className="p-2 rounded-lg bg-pink-500/20 backdrop-blur-sm mr-3">
-                    <svg className="text-pink-300 w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M7.17 6.17A5.001 5.001 0 0 0 2 11.5C2 15.09 6.47 17.82 7.17 18.22c.18.1.39.1.57 0C9.53 17.82 14 15.09 14 11.5a5.001 5.001 0 0 0-5.17-5.33zM7 13a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm10-6.83A5.001 5.001 0 0 0 16 11.5c0 3.59 4.47 6.32 5.17 6.72.18.1.39.1.57 0 .7-.4 5.17-3.13 5.17-6.72a5.001 5.001 0 0 0-5.17-5.33zM17 13a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
-                  </div>
-                  <div className="text-yellow-400 text-xl">★★★★★</div>
-                </div>
-                <p className="text-slate-300 mb-6 sm:mb-8 italic text-base sm:text-lg relative z-10 leading-relaxed">
-                  "The community support is amazing. I found study partners and mentors who helped me excel in my courses."
-                </p>
-                <div className="flex items-center relative z-10">
-                  <div className="relative mr-4">
-                    <img src="/images/testimonials/user3.webp" alt="Amit Verma" className="h-16 w-16 rounded-full object-cover border-4 border-pink-500/50 shadow-lg md:group-hover:border-pink-400 transition-colors duration-300" />
-                    <span className="absolute -bottom-1 -right-1 block h-4 w-4 rounded-full bg-green-400 ring-2 ring-slate-800"></span>
-                  </div>
-                  <div>
-                    <div className="font-bold text-pink-300 text-lg">Amit Verma</div>
-                    <div className="text-sm text-slate-400">ME Student, NIT Trichy</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        </div>
+      </section>
 
-
-      {/* CTA Section */}
+      {/* CTA Section - simplified */}
       <section id="cta" className="py-20 md:py-28 bg-gradient-to-br from-black via-gray-950/95 to-black relative overflow-hidden" aria-labelledby="cta-heading">
-        {/* Subtle color accents */}
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/10 via-violet-950/5 to-transparent pointer-events-none" aria-hidden="true"></div>
         <div className="absolute inset-0 bg-[url('/images/cta-background.webp')] opacity-10 bg-cover bg-center" aria-hidden="true"></div>
-        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-          <svg width="100%" height="100%" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="cta-dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-                <circle cx="1" cy="1" r="1" fill="#fff" opacity="0.05" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#cta-dots)" />
-          </svg>
-        </div>
+        
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-2xl mx-auto">
-            {visibleSections.has('cta') && (
-              <>
-                <div className="inline-flex items-center px-4 md:px-6 py-2.5 rounded-full bg-white/10 backdrop-blur-sm border border-indigo-400/30 text-indigo-100 mb-5 md:mb-6 md:animate-fade-in">
-                  <svg className="w-5 h-5 md:w-6 md:h-6 mr-2 text-indigo-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v4m0 8v4m8-8h-4m-8 0H4" /></svg>
-                  <span className="font-medium tracking-wide text-sm md:text-base">Ready to unlock your potential?</span>
-                </div>
-                <h2 id="cta-heading" className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-4 sm:mb-6 tracking-tight md:animate-fade-in md:animate-delay-100 drop-shadow-xl">
-                  Ready to Start Your Journey?
-                </h2>
-                <p className="text-lg sm:text-xl md:text-2xl text-indigo-100 mb-6 sm:mb-8 md:mb-10 md:animate-fade-in md:animate-delay-200">
-                  Join 50,000+ students mastering engineering with Genius. Take the first step toward your dream career today!
-                </p>
-                <div className="flex flex-col sm:flex-row justify-center gap-4 md:gap-6 md:animate-fade-in md:animate-delay-300">
-                  <Link
-                    to="/register"
-                    className="w-full sm:w-auto px-6 sm:px-8 md:px-10 py-3.5 sm:py-4 md:py-5 bg-white text-indigo-700 rounded-xl text-base md:text-lg font-bold hover:bg-indigo-50 transition-all duration-300 shadow-xl hover:shadow-2xl text-center"
-                    aria-label="Start your free trial"
-                  >
-                    Start Free Trial
-                  </Link>
-                  <Link
-                    to="/courses"
-                    className="w-full sm:w-auto px-6 sm:px-8 md:px-10 py-3.5 sm:py-4 md:py-5 bg-transparent text-white border-2 border-white rounded-xl text-base md:text-lg font-bold hover:bg-white/10 transition-all duration-300 text-center mt-3 sm:mt-0"
-                    aria-label="Browse all courses"
-                  >
-                    Browse Courses
-                  </Link>
-                </div>
-              </>
-            )}
+            <div className={`inline-flex items-center px-4 md:px-6 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-indigo-400/30 text-indigo-100 mb-6 ${!shouldReduceMotion ? 'animate-fade-in' : ''}`}>
+              <svg className="w-5 h-5 md:w-6 md:h-6 mr-2 text-indigo-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v4m0 8v4m8-8h-4m-8 0H4" />
+              </svg>
+              <span className="font-medium tracking-wide text-sm md:text-base">Ready to unlock your potential?</span>
+            </div>
+            <h2 id="cta-heading" className={`text-4xl md:text-5xl font-extrabold text-white mb-6 tracking-tight ${!shouldReduceMotion ? 'animate-fade-in animate-delay-100' : ''} drop-shadow-xl`}>
+              Ready to Start Your Journey?
+            </h2>
+            <p className={`text-xl md:text-2xl text-indigo-100 mb-8 md:mb-10 ${!shouldReduceMotion ? 'animate-fade-in animate-delay-200' : ''}`}>
+              Join 50,000+ students mastering engineering with Genius. Take the first step toward your dream career today!
+            </p>
+            <div className={`flex flex-col sm:flex-row justify-center gap-4 md:gap-6 ${!shouldReduceMotion ? 'animate-fade-in animate-delay-300' : ''}`}>
+              <Link
+                to="/register"
+                className="px-8 md:px-10 py-4 md:py-5 bg-white text-indigo-700 rounded-xl text-base md:text-lg font-bold hover:bg-indigo-50 transition-all duration-300 shadow-xl hover:shadow-2xl"
+                aria-label="Start your free trial"
+              >
+                Start Free Trial
+              </Link>
+              <Link
+                to="/courses"
+                className="px-8 md:px-10 py-4 md:py-5 bg-transparent text-white border-2 border-white rounded-xl text-base md:text-lg font-bold hover:bg-white/10 transition-all duration-300"
+                aria-label="Browse all courses"
+              >
+                Browse Courses
+              </Link>
+            </div>
           </div>  
         </div>
       </section>

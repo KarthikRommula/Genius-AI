@@ -1,1 +1,0 @@
-import{j as r}from"./index-BFVnrgS8.js";import"./vendor-CiO5v8bO.js";import"./ui-CT7WLdiF.js";function e(){return r.jsxs("div",{children:[r.jsx("h1",{children:"Playground Page"}),r.jsx("p",{children:"Welcome to the Playground page!"})]})}export{e as Playground};

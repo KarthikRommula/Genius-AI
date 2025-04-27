@@ -3,33 +3,40 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Genius.AI - A revolutionary learning platform combining cutting-edge technology with proven pedagogical methods for an enhanced educational experience." />
-  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
-  <meta http-equiv="X-Frame-Options" content="DENY" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self';" />
-  <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  
+  <!-- Performance optimizations -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="image" href="/images/HERO.avif" fetchpriority="high">
+  
+  <!-- SEO and accessibility -->
+  <meta name="description" content="Genius.AI - Learn engineering with AI-powered courses and a global community of experts. Master in-demand skills with personalized learning paths." />
+  <meta name="theme-color" content="#0f0f14" />
+  <meta name="color-scheme" content="dark" />
+  
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Genius.AI | Modern Engineering Education" />
+  <meta property="og:description" content="Learn engineering with AI-powered courses and a global community of experts" />
+  <meta property="og:image" content="/images/og-image.jpg" />
+  
+  <!-- Icons -->
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/png/apple-touch-icon-Cyg_F1t9.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/png/favicon-32x32-CW_tfF90.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/assets/png/favicon-16x16-yGeRVXgo.png">
-  <link rel="manifest" href="/assets/webmanifest/site-BwHFeIBa.webmanifest">
-  <link rel="preload" href="/images/cta-background.webp" as="image" type="image/webp" />
-  <title>Genius.AI - Revolutionary Learning Platform</title>
-  <script type="module" crossorigin src="/assets/js/index-BFVnrgS8.js"></script>
-  <link rel="modulepreload" crossorigin href="/assets/js/vendor-CiO5v8bO.js">
-  <link rel="modulepreload" crossorigin href="/assets/js/ui-CT7WLdiF.js">
-  <link rel="stylesheet" crossorigin href="/assets/css/index-mvfmi2wk.css">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon-Cyg_F1t9.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32-CW_tfF90.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16-yGeRVXgo.png">
+  <link rel="manifest" href="/assets/site-BwHFeIBa.webmanifest">
+  
+  <title>Genius.AI | Modern Engineering Education</title>
+  <script type="module" crossorigin src="/assets/index-CMHKAlsW.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/vendor-BJ3dT7G_.js">
+  <link rel="modulepreload" crossorigin href="/assets/icons-COp6CUZ4.js">
+  <link rel="stylesheet" crossorigin href="/assets/index-B7YbQH4o.css">
 </head>
 
 <body>
-  <div id="root"></div>
-  <!-- Force HTTPS redirect -->
-  <script>
-    if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
-      window.location.href = window.location.href.replace('http:', 'https:');
-    }
-  </script>
+  <div id="root"></div>
 </body>
 
 </html>

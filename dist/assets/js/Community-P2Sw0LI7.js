@@ -1,1 +1,0 @@
-import{j as e}from"./index-BFVnrgS8.js";import"./vendor-CiO5v8bO.js";import"./ui-CT7WLdiF.js";function i(){return e.jsxs("div",{children:[e.jsx("h1",{children:"Community Page"}),e.jsx("p",{children:"Welcome to the Community page!"})]})}export{i as Community};
