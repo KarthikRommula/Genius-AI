@@ -1,2 +1,3 @@
 ### Genuis AI ###
-### Facult Dashboard ### 
+### Faculty Dashboard ### 
+###
