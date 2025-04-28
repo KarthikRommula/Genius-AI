@@ -36,7 +36,7 @@ const FEATURED_COURSES = [
   },
   {
     id: '3',
-    title: 'Modern Full Stack Development',
+    title: 'Full Stack Development',
     description: 'Build scalable web applications using cutting-edge technologies and best practices.',
     instructor: 'Emily Rodriguez',
     thumbnail: '/images/PF1.webp',
