@@ -30,7 +30,7 @@ const FEATURED_COURSES = [
     students: 950,
     rating: 4.8,
     price: '$179',
-    category: 'Artificial Intelligence',
+    category: 'AI',
     tags: ['Machine Learning', 'AI', 'Neural Networks'],
     features: ['Projects', 'Mentorship', 'Career Guidance']
   },
