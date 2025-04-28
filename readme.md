@@ -1,2 +1,1 @@
 ### GENIUS.AI
-``KARTHIK``
