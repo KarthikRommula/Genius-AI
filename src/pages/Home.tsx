@@ -21,7 +21,7 @@ const FEATURED_COURSES = [
   },
   {
     id: '2',
-    title: 'Machine Learning & Neural Networks',
+    title: 'ML & Neural Networks',
     description: 'Deep dive into ML algorithms, neural networks, and practical AI applications.',
     instructor: 'Prof. Michael Chen',
     thumbnail: '/images/PF2.webp',
