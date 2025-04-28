@@ -16,7 +16,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return (savedTheme as ThemeType) || 'dark'; // Default to dark mode
   });
 
-  // Apply theme class to the document element
+  // Apply theme class to the document element  
   useEffect(() => {
     const root = window.document.documentElement;
     
