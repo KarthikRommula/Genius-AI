@@ -5,8 +5,8 @@ import { Footer } from "./components/Footer";
 import { ThemeProvider } from "./context/ThemeContext";
 
 // Lazy load pages for better performance
-const Home = lazy(() => import('./pages/Home').then(module => ({ default: module.Home })));
-const Courses = lazy(() => import('./pages/Courses').then(module => ({ default: module.Courses })));
+const Home = lazy(() => import('./pages/Home'));
+const Courses = lazy(() => import('./pages/Courses'));
 const Profile = lazy(() => import('./pages/Profile').then(module => ({ default: module.Profile })));
 const Playground = lazy(() => import('./pages/Playground').then(module => ({ default: module.Playground })));
 const Community = lazy(() => import('./pages/Community').then(module => ({ default: module.Community })));

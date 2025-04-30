@@ -1,0 +1,61 @@
+/* Animations for filter panel */
+@keyframes fadeSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes floatUpDown {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.animate-fadeSlideUp {
+  animation: fadeSlideUp 0.5s ease-out forwards;
+  animation-delay: 0.1s;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: floatUpDown 3s ease-in-out infinite;
+}
+
+/* Staggered animations for filter items */
+.filter-item-1 { animation-delay: 0.1s; }
+.filter-item-2 { animation-delay: 0.2s; }
+.filter-item-3 { animation-delay: 0.3s; }
+
+/* Hover effect for select dropdowns */
+.select-container:hover .chevron-icon {
+  transform: translateY(-50%) scale(1.2);
+  color: #818cf8; /* indigo-400 */
+}
+
+/* Scale effect for filter button */
+.filter-button:active {
+  transform: scale(0.95);
+}

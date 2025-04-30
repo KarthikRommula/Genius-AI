@@ -3,6 +3,7 @@ import { Search, Filter, ChevronDown, Clock, Users, Star, BookOpen } from 'lucid
 import { isSlowDevice, useReducedMotion } from '../utils/deviceDetection';
 import { useTheme } from '../context/useTheme';
 import type { Course } from '../types';
+import './Courses.css'; // Import the CSS file with animations
 
 const COURSES: Course[] = [
   {
@@ -82,12 +83,13 @@ const COURSES: Course[] = [
 const LEVELS = ['All Levels', 'Beginner', 'Intermediate', 'Advanced'];
 const DURATIONS = ['All Durations', '8 weeks', '10 weeks', '12 weeks', '14 weeks', '16 weeks'];
 
-export function Courses() {
+export default function Courses() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedLevel, setSelectedLevel] = useState('All Levels');
   const [selectedDuration, setSelectedDuration] = useState('All Durations');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [shouldReduceMotion, setShouldReduceMotion] = useState(false);
   
   // Get theme context
@@ -100,12 +102,33 @@ export function Courses() {
     setShouldReduceMotion(isSlowDevice() || prefersReducedMotion);
   }, [prefersReducedMotion]);
 
+  // Simplified toggle filter panel with smoother animation
+  const toggleFilters = () => {
+    if (showFilters) {
+      // Simply toggle the state - the CSS transition will handle the animation
+      setIsFilterOpen(false);
+      // Use a single timeout with appropriate duration
+      setTimeout(() => {
+        setShowFilters(false);
+      }, 300);
+    } else {
+      // For opening, show the panel immediately
+      setShowFilters(true);
+      // Then trigger the opening animation in the next frame
+      requestAnimationFrame(() => {
+        setIsFilterOpen(true);
+      });
+    }
+  };
+
   const filteredCourses = COURSES.filter(course => {
     const matchesCategory = selectedCategory === 'all' || course.category === selectedCategory;
     const matchesLevel = selectedLevel === 'All Levels' || course.level === selectedLevel;
     const matchesDuration = selectedDuration === 'All Durations' || course.duration === selectedDuration;
-    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         course.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = searchQuery === '' || 
+                         course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         course.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         course.instructor.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesLevel && matchesDuration && matchesSearch;
   });
 
@@ -128,14 +151,15 @@ export function Courses() {
         </div>
       </section>
 
-      {/* Search Bar */}
+      {/* Search and Filter Section */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 mt-4 sm:-mt-8 md:-mt-10 lg:-mt-8 relative z-10">
-        <div className="relative group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl opacity-20 group-hover:opacity-40 blur transition-all duration-300"></div>
-          <div className={`relative ${theme === 'dark' ? 'bg-gray-900/90 border border-gray-800/40' : 'bg-white/90 border border-slate-200/60'} backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden`}>
-            <div className="flex flex-col sm:flex-row sm:items-stretch">
-              <div className="relative flex-grow group/input">
-                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-indigo-400 group-focus-within/input:text-indigo-300 transition-colors duration-300">
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+          {/* Search Bar - Now completely separate from filter button */}
+          <div className="sm:col-span-4 relative">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl opacity-20 hover:opacity-40 blur transition-all duration-300"></div>
+            <div className={`relative ${theme === 'dark' ? 'bg-gray-900/90 border border-gray-800/40' : 'bg-white/90 border border-slate-200/60'} backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden h-full`}>
+              <div className="relative h-full">
+                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-indigo-400 transition-colors duration-300">
                   <Search className="h-5 w-5" />
                 </div>
                 <input
@@ -143,52 +167,57 @@ export function Courses() {
                   placeholder="Search for courses..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`w-full py-4 pl-12 pr-4 bg-transparent ${theme === 'dark' ? 'text-white placeholder-gray-400' : 'text-slate-800 placeholder-slate-500'} focus:outline-none focus:ring-0 border-0 text-base`}
+                  className={`w-full h-full py-4 pl-12 pr-4 bg-transparent ${theme === 'dark' ? 'text-white placeholder-gray-400' : 'text-slate-800 placeholder-slate-500'} focus:outline-none focus:ring-0 border-0 text-base`}
                 />
-                {searchQuery && (
-                  <button 
-                    className="absolute right-5 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-indigo-600/20 transition-all duration-300"
-                    onClick={() => setSearchQuery('')}
-                    aria-label="Clear search"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
-                )}
+                {/* X button removed as requested */}
               </div>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center justify-center px-5 py-4 ${theme === 'dark' ? 'bg-indigo-600 hover:bg-indigo-700 border-l border-indigo-700/50' : 'bg-indigo-600 hover:bg-indigo-700 border-l border-indigo-500/30'} text-white transition-colors duration-300 group`}
-                aria-expanded={showFilters}
-                aria-controls="filters-panel"
-              >
-                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0 group-hover/btn:opacity-100 group-hover/btn:animate-pulse-slow transition-opacity"></span>
-                <span className="relative flex items-center">
-                  <Filter className="h-5 w-5 mr-2" />
-                  <span>{showFilters ? 'Hide Filters' : 'Show Filters'}</span>
-                </span>
-              </button>
             </div>
+          </div>
+          
+          {/* Filter Button - Now completely separate from search */}
+          <div className="relative">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl opacity-20 hover:opacity-40 blur transition-all duration-300"></div>
+            <button
+              onClick={toggleFilters}
+              className={`relative w-full h-full flex items-center justify-center px-5 py-4 ${showFilters ? 'bg-indigo-700' : 'bg-indigo-600 hover:bg-indigo-700'} ${theme === 'dark' ? 'border border-indigo-700/50' : 'border border-indigo-500/30'} text-white transition-all duration-300 rounded-2xl shadow-xl overflow-hidden group`}
+              aria-expanded={showFilters}
+              aria-controls="filters-panel"
+            >
+              <span className="absolute inset-0 w-full h-full bg-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+              <span className="flex items-center relative z-10">
+                <Filter className={`h-5 w-5 mr-2 ${showFilters ? 'animate-float' : ''}`} />
+                <span className="font-medium">{showFilters ? 'Hide Filters' : 'Filters'}</span>
+              </span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Filters */}
-      {showFilters && (
-        <div id="filters-panel" className={`${showFilters ? 'max-h-96' : 'max-h-0'} overflow-hidden transition-all duration-300 ease-in-out ${theme === 'dark' ? 'bg-gray-900/90 border-t border-gray-800/40' : 'bg-slate-100/90 border-t border-slate-200/60'} backdrop-blur-sm`}>
+      {/* Improved Filter Panel with Smooth Animation */}
+      <div 
+        id="filters-panel" 
+        className={`${theme === 'dark' ? 'bg-gray-900/95 border-t border-gray-800/40' : 'bg-slate-100/95 border-t border-slate-200/60'} backdrop-blur-xl shadow-xl overflow-hidden transition-all duration-300 ease-in-out ${showFilters ? 'border-b border-indigo-500/10' : 'border-b-0'}`}
+        style={{ 
+          maxHeight: isFilterOpen ? '800px' : '0px',
+          opacity: isFilterOpen ? 1 : 0,
+          visibility: showFilters ? 'visible' : 'hidden'
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-white flex items-center">
-              <Filter className="h-5 w-5 mr-2 text-indigo-400" />
-              Filter Courses
-            </h3>
+          <div className="flex items-center justify-between mb-8">
+            <div className="relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg opacity-30 blur-sm animate-pulse-glow"></div>
+              <h3 className="relative text-xl font-bold text-white flex items-center bg-gray-900/70 px-4 py-2 rounded-lg border border-indigo-500/40 shadow-md shadow-indigo-500/10">
+                <Filter className="h-5 w-5 mr-2 text-indigo-400" />
+                Filter Courses
+              </h3>
+            </div>
             <button 
-              onClick={() => setShowFilters(false)}
-              className="p-2 rounded-full hover:bg-gray-800/70 text-gray-400 hover:text-white transition-all duration-300"
+              onClick={toggleFilters}
+              className="p-2.5 rounded-full hover:bg-gray-800/70 text-gray-400 hover:text-white transition-all duration-300 border border-gray-700/50 hover:border-indigo-500/50 hover:shadow-lg hover:shadow-indigo-500/10 transform hover:scale-105 active:scale-95 filter-button relative overflow-hidden group"
               aria-label="Close filters"
             >
+              <span className="absolute inset-0 w-full h-full bg-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></span>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -196,19 +225,19 @@ export function Courses() {
             </button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Category Filter */}
-            <div className="space-y-3">
-              <label className="block text-sm font-medium text-indigo-300">Category</label>
-              <div className="flex flex-wrap gap-2">
+            <div className={`space-y-4 transition-all duration-300 delay-100 ${isFilterOpen ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform -translate-y-4'}`}>
+              <label className="block text-sm font-medium text-indigo-300 uppercase tracking-wider">Category</label>
+              <div className="flex flex-wrap gap-2 transform transition-all duration-300">
                 {['all', 'cs', 'ai'].map(category => (
                   <button
                     key={category}
                     onClick={() => setSelectedCategory(category)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 transform ${
                       selectedCategory === category
-                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                        : 'bg-gray-800/80 text-gray-300 hover:bg-gray-700/80 hover:shadow'
+                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg scale-105'
+                        : 'bg-gray-800/80 text-gray-300 hover:bg-gray-700/80 hover:shadow hover:scale-105 active:scale-95 hover:border-indigo-500/30'
                     }`}
                   >
                     {category === 'all' ? 'All Courses' : category === 'cs' ? 'Computer Science' : 'AI & ML'}
@@ -218,48 +247,47 @@ export function Courses() {
             </div>
             
             {/* Level Filter */}
-            <div className="space-y-3">
-              <label className="block text-sm font-medium text-indigo-300">Experience Level</label>
-              <div className="relative">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg opacity-20 blur-sm"></div>
-                <div className="relative">
+            <div className={`space-y-4 transition-all duration-300 delay-200 ${isFilterOpen ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform -translate-y-4'}`}>
+              <label className="block text-sm font-medium text-indigo-300 uppercase tracking-wider">Experience Level</label>
+              <div className="relative transform transition-all duration-300 hover:scale-[1.02] select-container">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg opacity-20 blur-sm transition-opacity duration-300 hover:opacity-40"></div>
+                <div className="relative group">
                   <select
                     value={selectedLevel}
                     onChange={(e) => setSelectedLevel(e.target.value)}
-                    className="w-full appearance-none bg-gray-900/90 border border-gray-700/50 text-white rounded-lg px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+                    className="w-full appearance-none bg-gray-900/90 border border-gray-700/50 text-white rounded-lg px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 hover:border-indigo-500/50 shadow-sm hover:shadow-md hover:shadow-indigo-500/10 cursor-pointer"
                   >
                     {LEVELS.map(level => (
                       <option key={level} value={level}>{level}</option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-indigo-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-indigo-400 pointer-events-none transition-all duration-300 chevron-icon" />
                 </div>
               </div>
             </div>
 
             {/* Duration Filter */}
-            <div className="space-y-3">
-              <label className="block text-sm font-medium text-indigo-300">Course Duration</label>
-              <div className="relative">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg opacity-20 blur-sm"></div>
-                <div className="relative">
+            <div className={`space-y-4 transition-all duration-300 delay-300 ${isFilterOpen ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform -translate-y-4'}`}>
+              <label className="block text-sm font-medium text-indigo-300 uppercase tracking-wider">Course Duration</label>
+              <div className="relative transform transition-all duration-300 hover:scale-[1.02] select-container">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg opacity-20 blur-sm transition-opacity duration-300 hover:opacity-40"></div>
+                <div className="relative group">
                   <select
                     value={selectedDuration}
                     onChange={(e) => setSelectedDuration(e.target.value)}
-                    className="w-full appearance-none bg-gray-900/90 border border-gray-700/50 text-white rounded-lg px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+                    className="w-full appearance-none bg-gray-900/90 border border-gray-700/50 text-white rounded-lg px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 hover:border-indigo-500/50 shadow-sm hover:shadow-md hover:shadow-indigo-500/10 cursor-pointer"
                   >
                     {DURATIONS.map(duration => (
                       <option key={duration} value={duration}>{duration}</option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-indigo-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-indigo-400 pointer-events-none transition-all duration-300 chevron-icon" />
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      )}
       
       {/* Course Grid */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">

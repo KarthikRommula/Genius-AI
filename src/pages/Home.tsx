@@ -58,7 +58,7 @@ const STATS = [
   { label: 'Student Satisfaction', value: '4.8/5', icon: Medal },
 ];
 
-export function Home() {
+export default function Home() {
   // State for controlling animations and device-specific behavior
   const [shouldReduceMotion, setShouldReduceMotion] = useState(false);
   const [isMobileDevice, setIsMobileDevice] = useState(false);
@@ -295,9 +295,9 @@ export function Home() {
         </div>
       </section>
 
-      {/* Popular Courses Section - optimized */}
-      <section id="courses" className="py-32 relative bg-gradient-to-br from-black via-gray-950/90 to-black overflow-hidden" aria-labelledby="courses-heading">
-        {!isMobileDevice && (
+      {/* Popular Courses Section - optimized for mobile */}
+      <section id="courses" className="py-24 md:py-32 relative bg-gradient-to-br from-black via-gray-950/90 to-black overflow-hidden" aria-labelledby="courses-heading">
+        {!isMobileDevice && !shouldReduceMotion && (
           <>
             <div className="absolute top-0 -left-4 w-72 h-72 bg-violet-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob animate-delay-4000"></div>
             <div className="absolute bottom-0 right-20 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob animate-delay-1000"></div>
@@ -305,14 +305,14 @@ export function Home() {
         )}
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-16">
+          <div className="flex justify-between items-center mb-10 md:mb-16">
             <div>
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-indigo-500/10 text-indigo-300 mb-6">
-                <Globe className="w-4 h-4 mr-2" />
-                <span className="text-sm font-medium">Popular Courses</span>
+              <div className="inline-flex items-center px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-indigo-500/10 text-indigo-300 mb-4 md:mb-6">
+                <Globe className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                <span className="text-xs md:text-sm font-medium">Popular Courses</span>
               </div>
-              <h2 id="courses-heading" className="text-4xl font-bold mb-4 text-white">Start Your Learning Journey</h2>
-              <p className="text-xl text-slate-300">Begin with our most sought-after programs</p>
+              <h2 id="courses-heading" className="text-2xl md:text-4xl font-bold mb-2 md:mb-4 text-white">Start Your Learning Journey</h2>
+              <p className="text-base md:text-xl text-slate-300">Begin with our most sought-after programs</p>
             </div>
             <Link 
               to="/courses" 
@@ -324,88 +324,137 @@ export function Home() {
             </Link>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {FEATURED_COURSES.map(course => (
-              <div key={course.id} className={`group relative rounded-3xl overflow-hidden bg-black/70 backdrop-blur-xl border border-gray-800/50 ${!isMobileDevice ? 'hover:border-indigo-500/50' : ''} transition-all duration-300 shadow-lg`}>
-                {!isMobileDevice && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                )}
-                <div className="relative">
-                  <div className="relative h-56 overflow-hidden">
-                    <img
-                      src={course.thumbnail}
-                      alt={course.title}
-                      className={`w-full h-full object-cover ${!isMobileDevice ? 'transform group-hover:scale-110 transition-transform duration-700' : ''}`}
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent"></div>
-                    <div className="absolute top-4 left-4">
-                      <span className="px-3 py-1 bg-indigo-500/90 backdrop-blur-sm text-white text-sm font-medium rounded-full">
-                        {course.category}
-                      </span>
-                    </div>
-                    <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-                      <span className="px-3 py-1 bg-white/10 backdrop-blur-sm text-white text-sm font-medium rounded-full">
-                        {course.level}
-                      </span>
-                      <span className="px-3 py-1 bg-white/10 backdrop-blur-sm text-white text-sm font-medium rounded-full">
-                        {course.duration}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="p-8">
-                    <div className="flex items-center gap-2 mb-4">
-                      {course.tags.map((tag, index) => (
-                        <span key={index} className="px-2 py-1 bg-indigo-500/10 text-indigo-300 text-xs font-medium rounded-full">
-                          {tag}
+          {/* Mobile-optimized course grid with improved performance */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            {FEATURED_COURSES.map((course, index) => {
+              // Apply will-change only to visible courses for better performance
+              const applyWillChange = index < 3;
+              const transitionDuration = isMobileDevice ? '250ms' : '300ms';
+              
+              return (
+                <div 
+                  key={course.id} 
+                  className={`group relative rounded-2xl md:rounded-3xl overflow-hidden bg-black/70 backdrop-blur-sm md:backdrop-blur-xl border border-gray-800/50 ${!isMobileDevice ? 'hover:border-indigo-500/50' : ''} transition-colors shadow-md md:shadow-lg`}
+                  style={applyWillChange && !isMobileDevice ? { willChange: 'transform, opacity' } : undefined}
+                >
+                  {/* Only render hover effects on non-mobile */}
+                  {!isMobileDevice && (
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  )}
+                  <div className="relative">
+                    {/* Optimized image container */}
+                    <div className="relative h-48 md:h-56 overflow-hidden">
+                      <img
+                        src={course.thumbnail}
+                        alt={course.title}
+                        className={`w-full h-full object-cover ${!isMobileDevice && !shouldReduceMotion ? 'transform group-hover:scale-105 transition-transform' : ''}`}
+                        style={{ transitionDuration }}
+                        loading="lazy"
+                        width="400"
+                        height="225"
+                        decoding="async"
+                      />
+                      {/* Simplified gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
+                      <div className="absolute top-3 left-3 md:top-4 md:left-4">
+                        <span className="px-2 py-1 md:px-3 md:py-1 bg-indigo-500/90 text-white text-xs md:text-sm font-medium rounded-full">
+                          {course.category}
                         </span>
-                      ))}
-                    </div>
-                    
-                    <h3 className={`text-xl font-bold text-white mb-3 ${!isMobileDevice ? 'group-hover:text-indigo-400' : ''} transition-colors`}>
-                      {course.title}
-                    </h3>
-                    <p className="text-slate-300 mb-6 line-clamp-2">{course.description}</p>
-                    
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center">
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold mr-3">
-                          {course.instructor.charAt(0)}
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-white">{course.instructor}</div>
-                          <div className="text-xs text-slate-400">Instructor</div>
-                        </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                        <span className="text-white font-medium">{course.rating}</span>
-                        <span className="text-slate-400 text-sm">({course.students})</span>
+                      <div className="absolute bottom-3 left-3 right-3 md:bottom-4 md:left-4 md:right-4 flex items-center justify-between">
+                        <span className="px-2 py-1 md:px-3 md:py-1 bg-white/10 text-white text-xs md:text-sm font-medium rounded-full">
+                          {course.level}
+                        </span>
+                        <span className="px-2 py-1 md:px-3 md:py-1 bg-white/10 text-white text-xs md:text-sm font-medium rounded-full">
+                          {course.duration}
+                        </span>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-4 mb-6">
-                      {course.features.map((feature, index) => (
-                        <div key={index} className="flex items-center text-slate-400 text-sm">
-                          <Check className="w-4 h-4 text-indigo-400 mr-1" />
-                          {feature}
-                        </div>
-                      ))}
-                    </div>
-                    
-                    <div className="flex items-center justify-between pt-6 border-t border-slate-700/50">
-                      <div className="text-3xl font-bold text-transparent bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text">
-                        {course.price}
+                    {/* Optimized content area with reduced padding on mobile */}
+                    <div className="p-4 md:p-6 lg:p-8">
+                      {/* Simplified tags for mobile */}
+                      <div className="flex flex-wrap items-center gap-1.5 mb-3 md:mb-4">
+                        {isMobileDevice ? 
+                          // Show only first tag on mobile
+                          course.tags.slice(0, 1).map((tag, index) => (
+                            <span key={index} className="px-2 py-0.5 bg-indigo-500/10 text-indigo-300 text-xs font-medium rounded-full">
+                              {tag}
+                            </span>
+                          )) : 
+                          // Show all tags on desktop
+                          course.tags.map((tag, index) => (
+                            <span key={index} className="px-2 py-0.5 bg-indigo-500/10 text-indigo-300 text-xs font-medium rounded-full">
+                              {tag}
+                            </span>
+                          ))
+                        }
                       </div>
-                      <button className={`px-6 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl ${!isMobileDevice ? 'hover:from-indigo-700 hover:to-violet-700' : ''} transition-all duration-300 font-semibold shadow-lg`}>
-                        Enroll Now
-                      </button>
+                      
+                      <h3 className={`text-lg md:text-xl font-bold text-white mb-2 md:mb-3 ${!isMobileDevice ? 'group-hover:text-indigo-400' : ''} transition-colors`}>
+                        {course.title}
+                      </h3>
+                      <p className="text-sm md:text-base text-slate-300 mb-4 md:mb-6 line-clamp-2">{course.description}</p>
+                      
+                      {/* Simplified instructor and rating section */}
+                      <div className="flex items-center justify-between mb-4 md:mb-6">
+                        <div className="flex items-center">
+                          <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-xs md:text-sm mr-2 md:mr-3">
+                            {course.instructor.charAt(0)}
+                          </div>
+                          <div>
+                            <div className="text-xs md:text-sm font-medium text-white">{course.instructor}</div>
+                            <div className="text-xs text-slate-400">Instructor</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-400 fill-yellow-400" />
+                          <span className="text-sm md:text-base text-white font-medium">{course.rating}</span>
+                          <span className="text-xs md:text-sm text-slate-400">({course.students})</span>
+                        </div>
+                      </div>
+                      
+                      {/* Simplified features section - only show on desktop */}
+                      {!isMobileDevice && (
+                        <div className="flex flex-wrap items-center gap-3 mb-6">
+                          {course.features.map((feature, index) => (
+                            <div key={index} className="flex items-center text-slate-400 text-xs md:text-sm">
+                              <Check className="w-3.5 h-3.5 md:w-4 md:h-4 text-indigo-400 mr-1" />
+                              {feature}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Simplified pricing and CTA section */}
+                      <div className="flex items-center justify-between pt-4 md:pt-6 border-t border-slate-700/50">
+                        <div className="text-xl md:text-3xl font-bold text-transparent bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text">
+                          {course.price}
+                        </div>
+                        <button 
+                          className={`px-4 py-2 md:px-6 md:py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm md:text-base rounded-lg md:rounded-xl ${!isMobileDevice ? 'hover:from-indigo-700 hover:to-violet-700' : ''} transition-colors font-semibold shadow-md md:shadow-lg`}
+                          aria-label={`Enroll in ${course.title}`}
+                        >
+                          Enroll Now
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
+          </div>
+          
+          {/* Mobile-only View All button */}
+          <div className="mt-8 flex justify-center md:hidden">
+            <Link 
+              to="/courses" 
+              className="inline-flex items-center justify-center w-full max-w-xs px-6 py-3 bg-indigo-600/90 text-white rounded-xl font-semibold shadow-md transition-colors duration-300"
+              aria-label="View all available courses"
+            >
+              View All Courses
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
           </div>
         </div>
       </section>
@@ -547,9 +596,9 @@ export function Home() {
               </button>
               
               <button 
-                onClick={() => setCurrentTestimonialIndex(prev => Math.min(2, prev + 1))}
-                disabled={currentTestimonialIndex === 2} 
-                className={`absolute right-0 top-1/2 -translate-y-1/2 z-20 h-full flex items-center justify-center px-1 sm:px-2 ${currentTestimonialIndex === 2 ? 'opacity-0 cursor-default' : 'opacity-70 hover:opacity-100'} transition-opacity duration-300`}
+                onClick={() => setCurrentTestimonialIndex(prev => Math.min(3, prev + 1))}
+                disabled={currentTestimonialIndex === 3} 
+                className={`absolute right-0 top-1/2 -translate-y-1/2 z-20 h-full flex items-center justify-center px-1 sm:px-2 ${currentTestimonialIndex === 3 ? 'opacity-0 cursor-default' : 'opacity-70 hover:opacity-100'} transition-opacity duration-300`}
                 aria-label="Next testimonials"
               >
                 <span className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center bg-black/60 rounded text-white">
@@ -560,7 +609,7 @@ export function Home() {
             
             {/* Extremely minimal pagination indicators for mobile with increased spacing */}
             <div className="flex justify-center items-center mt-1.5 sm:mt-4 space-x-2.5 sm:space-x-3">
-              {[0, 1, 2].map(pageIndex => (
+              {[0, 1, 2, 3].map(pageIndex => (
                 <button 
                   key={pageIndex} 
                   onClick={() => setCurrentTestimonialIndex(pageIndex)}

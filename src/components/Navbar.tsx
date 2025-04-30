@@ -1,4 +1,4 @@
-import { BookOpen, User, Menu, Search, ChevronDown, X, Code, Users, FileText, Globe, Sun, Moon } from 'lucide-react';
+import { BookOpen, User, Menu, Search, ChevronDown, Code, Users, FileText, Globe, Sun, Moon } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { isMobile } from '../utils/deviceDetection';
 import { searchContent, SearchResult } from '../utils/searchUtils';
@@ -110,14 +110,7 @@ export function Navbar() {
     }
   };
   
-  const clearSearch = () => {
-    setSearchQuery('');
-    setSearchResults([]);
-    setShowSearchResults(false);
-    if (searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  };
+  // Function removed as it's no longer needed since X button was removed
   
   // Function to get the appropriate icon for each result type
   const getResultIcon = (type: string) => {
@@ -184,18 +177,9 @@ export function Navbar() {
                   placeholder="Search..."
                   value={searchQuery}
                   onChange={handleSearchChange}
-                  className={`pl-9 pr-9 py-1.5 rounded-full ${theme === 'dark' ? 'bg-slate-800/80 border border-slate-700/80 text-slate-100 placeholder-slate-400' : 'bg-slate-100/80 border border-slate-200 text-slate-800 placeholder-slate-500'} focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent w-56 ${!isMobileDevice ? 'transition-all duration-300 focus:w-72' : ''}`}
+                  className={`pl-9 py-1.5 rounded-full ${theme === 'dark' ? 'bg-slate-800/80 border border-slate-700/80 text-slate-100 placeholder-slate-400' : 'bg-slate-100/80 border border-slate-200 text-slate-800 placeholder-slate-500'} focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent w-56 ${!isMobileDevice ? 'transition-all duration-300 focus:w-72' : ''}`}
                 />
-                {searchQuery && (
-                  <button 
-                    type="button"
-                    onClick={clearSearch}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-800/50"
-                    aria-label="Clear search"
-                  >
-                    <X className={`h-4 w-4 text-gray-400 ${!isMobileDevice ? 'hover:text-white transition-colors duration-300' : ''}`} />
-                  </button>
-                )}
+                {/* X button removed as requested */}
               </form>
               
               {/* Search results dropdown */}
@@ -357,7 +341,7 @@ export function Navbar() {
                       placeholder="Search..."
                       value={searchQuery}
                       onChange={handleSearchChange}
-                      className={`w-full pl-9 pr-9 py-2.5 rounded-lg bg-slate-800/80 border border-slate-700/80 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent ${!isMobileDevice ? 'transition-all duration-300' : ''}`}
+                      className={`w-full pl-9 py-2.5 rounded-lg bg-slate-800/80 border border-slate-700/80 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent ${!isMobileDevice ? 'transition-all duration-300' : ''}`}
                     />
                   </div>
                 </form>
