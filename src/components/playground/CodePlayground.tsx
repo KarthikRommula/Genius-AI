@@ -1,12 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Download, Copy, Save, Layout, Code, Monitor, RefreshCw, Bug, Zap, AlertTriangle } from 'lucide-react';
-import Editor from '@monaco-editor/react';
-
-interface ExecutionResult {
-  html: string;
-  error: string | null;
-  success: boolean;
-}
+import Editor, { OnMount } from '@monaco-editor/react';
+import type { editor } from 'monaco-editor';
 
 export default function CodePlayground() {
     const [output, setOutput] = useState<string>('');
@@ -27,7 +22,7 @@ export default function CodePlayground() {
     const [isClient, setIsClient] = useState(false);
     const [livePreview, setLivePreview] = useState<string>('');
 
-    const editorRef = useRef(null);
+    const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
     const outputRef = useRef<HTMLDivElement>(null);
     const previewIframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -36,7 +31,7 @@ export default function CodePlayground() {
         setIsClient(true);
     }, []);
 
-    const handleEditorDidMount = (editor: any) => {
+    const handleEditorDidMount: OnMount = (editor: editor.IStandaloneCodeEditor) => {
         editorRef.current = editor;
     };
 
@@ -85,7 +80,7 @@ export default function CodePlayground() {
         }
     };
 
-    const generateLivePreview = () => {
+    const generateLivePreview = useCallback(() => {
         // Combine HTML, CSS, and JS
         const combinedCode = `
         <!DOCTYPE html>
@@ -108,9 +103,9 @@ export default function CodePlayground() {
         `;
         
         return combinedCode;
-    };
+    }, [cssCode, htmlCode, jsCode]);
 
-    const runCode = async () => {
+    const runCode = useCallback(async () => {
         try {
             setIsExecuting(true);
             setError(null);
@@ -120,20 +115,11 @@ export default function CodePlayground() {
             const previewCode = generateLivePreview();
             setLivePreview(previewCode);
             
-            // Update iframe content
-            if (previewIframeRef.current) {
-                const iframe = previewIframeRef.current;
-                const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-                
-                if (iframeDoc) {
-                    iframeDoc.open();
-                    iframeDoc.write(previewCode);
-                    iframeDoc.close();
-                }
-            }
-            
-            // Simulate console output
-            setOutput("Preview updated successfully!");
+            // Simulate execution (in a real app, this might run the code in a sandbox)
+            setTimeout(() => {
+                setIsExecuting(false);
+                setOutput("Code executed successfully!");
+            }, 500);
             
         } catch (error) {
             if (error instanceof Error) {
@@ -146,7 +132,7 @@ export default function CodePlayground() {
         } finally {
             setIsExecuting(false);
         }
-    };
+    }, [generateLivePreview, setDebugInfo, setError, setIsExecuting, setLivePreview, setOutput]);
 
     const debugCode = async () => {
         try {
@@ -193,7 +179,7 @@ export default function CodePlayground() {
             setTimeout(() => {
                 if (language === 'html') {
                     // HTML code analysis
-                    let issues = [];
+                    const issues = [];
                     
                     // Check for doctype
                     if (!code.toLowerCase().includes('<!doctype')) {
@@ -241,7 +227,8 @@ export default function CodePlayground() {
                     closeTags.forEach(tag => {
                         const tagMatch = tag.match(/<\/([a-zA-Z][a-zA-Z0-9]*)>/);
                         if (tagMatch && tagMatch[1]) {
-                            closeTagNames.push(tagMatch[1].toLowerCase());
+                            const tagName = tagMatch[1].toLowerCase();
+                            closeTagNames.push(tagName);
                         }
                     });
                     
@@ -262,7 +249,7 @@ export default function CodePlayground() {
                 } 
                 else if (language === 'css') {
                     // CSS code analysis
-                    let issues = [];
+                    const issues = [];
                     
                     // Check for vendor prefixes
                     if (code.includes('-webkit-') || code.includes('-moz-') || code.includes('-ms-')) {
@@ -285,7 +272,7 @@ export default function CodePlayground() {
                     }
                     
                     // Check for missing semicolons
-                    const properties = code.match(/[a-zA-Z\-]+\s*:\s*[^;{}]+/g) || [];
+                    const properties = code.match(/[a-zA-Z-]+\s*:\s*[^;{}]+/g) || [];
                     const missingSemicolons = properties.filter(prop => !prop.trim().endsWith(';') && !prop.includes('{') && !prop.includes('}'));
                     
                     if (missingSemicolons.length > 0) {
@@ -300,7 +287,7 @@ export default function CodePlayground() {
                 }
                 else if (language === 'js') {
                     // JavaScript code analysis
-                    let issues = [];
+                    const issues = [];
                     
                     // Check for semicolons
                     const lines = code.split('\n');
@@ -414,7 +401,7 @@ export default function CodePlayground() {
                     // Format HTML (basic)
                     optimizedCode = optimizedCode
                         .replace(/>\s+</g, '>\n<')
-                        .replace(/(<[^\/][^>]*>)(?!\s*<)/g, '$1\n  ');
+                        .replace(/(<[^/][^>]*>)(?!\s*<)/g, '$1\n  ');
                     
                     resolve(optimizedCode);
                 }
@@ -447,24 +434,61 @@ ${optimizedCode}`;
                 else if (language === 'js') {
                     let optimizedCode = code;
                     
-                    // Replace var with const/let
-                    optimizedCode = optimizedCode.replace(/var\s+([a-zA-Z0-9_$]+)\s*=\s*([^;]+);/g, (match, varName, value) => {
-                        if (value.includes('function(') || value.includes('=>') || value.includes('{')) {
-                            return `const ${varName} = ${value};`;
-                        } else {
-                            return `let ${varName} = ${value};`;
-                        }
-                    });
-                    
-                    // Convert function expressions to arrow functions
-                    optimizedCode = optimizedCode.replace(/function\s*\(([^)]*)\)\s*{\s*return\s+([^;]+);\s*}/g, '($1) => $2');
-                    
-                    // Add missing semicolons
-                    optimizedCode = optimizedCode.replace(/([a-zA-Z0-9_$"'`\)\]])\s*\n/g, '$1;\n');
+                    try {
+                        // Wrap all optimizations in a try-catch to prevent any errors from breaking the component
+                        // Replace var with const/let - safer implementation
+                        const varRegex = /var\s+([a-zA-Z0-9_$]+)\s*=\s*([^;]+);/g;
+                        optimizedCode = optimizedCode.replace(varRegex, (_match, varName, value) => {
+                            // Check if value contains function-like content
+                            if (value.includes('function(') || value.includes('=>') || value.includes('{')) {
+                                return `const ${varName} = ${value};`;
+                            } else {
+                                return `let ${varName} = ${value};`;
+                            }
+                        });
+                        
+                        // Convert simple function expressions to arrow functions
+                        // More conservative approach that only converts simple functions
+                        const funcRegex = /function\s*\(([^)]*)\)\s*{\s*return\s+([^;{}]+);\s*}/g;
+                        optimizedCode = optimizedCode.replace(funcRegex, (_match, params, returnValue) => {
+                            return `(${params}) => ${returnValue}`;
+                        });
+                        
+                        // Add missing semicolons - more conservative approach
+                        const lines = optimizedCode.split('\n');
+                        const processedLines = lines.map(line => {
+                            const trimmed = line.trim();
+                            if (trimmed.length === 0) return line;
+                            if (trimmed.endsWith(';')) return line;
+                            if (trimmed.endsWith('{')) return line;
+                            if (trimmed.endsWith('}')) return line;
+                            if (trimmed.endsWith(',')) return line;
+                            if (trimmed.startsWith('//')) return line;
+                            if (trimmed.startsWith('/*')) return line;
+                            if (trimmed.startsWith('*')) return line;
+                            if (trimmed.startsWith('if')) return line;
+                            if (trimmed.startsWith('else')) return line;
+                            if (trimmed.startsWith('for')) return line;
+                            if (trimmed.startsWith('while')) return line;
+                            if (trimmed.startsWith('function')) return line;
+                            
+                            // Check if line ends with a valid identifier, number, string, or closing bracket
+                            const endsWithValidChar = /[a-zA-Z0-9_$"'`)]$/.test(trimmed);
+                            if (endsWithValidChar) {
+                                return line + ';';
+                            }
+                            return line;
+                        });
+                        optimizedCode = processedLines.join('\n');
                     
                     // Add "use strict" at the top if not present
                     if (!optimizedCode.includes('"use strict"') && !optimizedCode.includes("'use strict'")) {
                         optimizedCode = `"use strict";\n\n${optimizedCode}`;
+                    }
+                    } catch (error) {
+                        // If any error occurs during optimization, return the original code
+                        console.error("Error optimizing JavaScript:", error instanceof Error ? error.message : String(error));
+                        return code;
                     }
                     
                     resolve(optimizedCode);
@@ -486,11 +510,18 @@ ${optimizedCode}`;
 
     const copyCode = () => {
         const codeToCopy = getEditorValue();
-        navigator.clipboard.writeText(codeToCopy);
+        navigator.clipboard.writeText(codeToCopy)
+            .then(() => {
+                setOutput("Code copied to clipboard!");
+                setError(null);
+            })
+            .catch(err => {
+                setError(`Failed to copy: ${err.message}`);
+            });
     };
 
     const downloadCode = () => {
-        let codeToCopy = getEditorValue();
+        const codeToCopy = getEditorValue();
         let extension;
 
         switch (activeTab) {
@@ -517,9 +548,40 @@ ${optimizedCode}`;
     };
 
     const downloadFullProject = () => {
-        // Create a ZIP file with HTML, CSS, and JS files
-        // For simplicity, you might want to use a library like JSZip
-        alert('Download project functionality would be implemented with JSZip or similar library');
+        try {
+            // Create a single HTML file with embedded CSS and JS
+            const fullHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Project</title>
+    <style>
+        ${cssCode}
+    </style>
+</head>
+<body>
+    ${htmlCode}
+    <script>
+        ${jsCode}
+    </script>
+</body>
+</html>`;
+            
+            // Create download link
+            const element = document.createElement('a');
+            const file = new Blob([fullHtml], { type: 'text/html' });
+            element.href = URL.createObjectURL(file);
+            element.download = 'web-project.html';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+            
+            setOutput("Project downloaded as a single HTML file");
+            setError(null);
+        } catch (error) {
+            setError(`Failed to download project: ${error instanceof Error ? error.message : String(error)}`);
+        }
     };
 
     // Run the code only on the client side after initial render
@@ -527,7 +589,7 @@ ${optimizedCode}`;
         if (isClient) {
             runCode();
         }
-    }, [isClient]);
+    }, [isClient, runCode]);
 
     // If we're not on the client side (server-side rendering), show a loading state
     if (!isClient) {
@@ -798,6 +860,7 @@ ${optimizedCode}`;
                                         className="w-full h-full border-0"
                                         title="Code Preview"
                                         sandbox="allow-scripts allow-same-origin"
+                                        srcDoc={livePreview}
                                     />
                                 </div>
                                 <div className="bg-black text-white p-2 h-32 overflow-y-auto">
