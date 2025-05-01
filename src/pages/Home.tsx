@@ -9,7 +9,7 @@ const FEATURED_COURSES = [
     title: 'Advanced Data Structures & Algorithms',
     description: 'Master complex algorithms and data structures with hands-on practice and real-world applications.',
     instructor: 'Dr. Sarah Johnson',
-    thumbnail: '/images/PF1.webp',
+    thumbnail: '/images/courses/courses1.webp',
     duration: '12 weeks',
     level: 'Advanced',
     students: 1200,
@@ -24,7 +24,7 @@ const FEATURED_COURSES = [
     title: 'ML & Neural Networks',
     description: 'Deep dive into ML algorithms, neural networks, and practical AI applications.',
     instructor: 'Prof. Michael Chen',
-    thumbnail: '/images/PF2.webp',
+    thumbnail: '/images/courses/courses2.webp',
     duration: '10 weeks',
     level: 'Intermediate',
     students: 950,
@@ -39,7 +39,7 @@ const FEATURED_COURSES = [
     title: 'Full Stack Development',
     description: 'Build scalable web applications using cutting-edge technologies and best practices.',
     instructor: 'Emily Rodriguez',
-    thumbnail: '/images/PF1.webp',
+    thumbnail: '/images/courses/courses3.webp',
     duration: '14 weeks',
     level: 'Intermediate',
     students: 1500,
@@ -64,9 +64,36 @@ export default function Home() {
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
   const testimonialSliderRef = useRef<HTMLDivElement>(null);
+  const [touchStartX, setTouchStartX] = useState(0);
+  const [touchEndX, setTouchEndX] = useState(0);
   
   // Use the proper React Hook at the component level
   const prefersReducedMotion = useReducedMotion();
+  
+  // Handle swipe functionality for testimonials
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+  
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.touches[0].clientX);
+  };
+  
+  const handleTouchEnd = () => {
+    if (touchStartX - touchEndX > 50) {
+      // Swipe left - go to next testimonial
+      setCurrentTestimonialIndex(prev => Math.min(3, prev + 1));
+    }
+    
+    if (touchEndX - touchStartX > 50) {
+      // Swipe right - go to previous testimonial
+      setCurrentTestimonialIndex(prev => Math.max(0, prev - 1));
+    }
+    
+    // Reset touch positions
+    setTouchStartX(0);
+    setTouchEndX(0);
+  };
   
   useEffect(() => {
     setIsMobileDevice(isMobile());
@@ -460,7 +487,7 @@ export default function Home() {
       </section>
 
       {/* Testimonials Section - simplified for mobile */}
-      <section id="testimonials" className="py-24 bg-gradient-to-br from-black via-gray-950/95 to-black section-padding relative overflow-hidden" aria-labelledby="testimonials-heading">
+      <section id="testimonials" className="py-16 md:py-24 bg-gradient-to-br from-black via-gray-950/95 to-black section-padding relative overflow-hidden" aria-labelledby="testimonials-heading">
         {!isMobileDevice && (
           <>
             <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob"></div>
@@ -469,25 +496,28 @@ export default function Home() {
         )}
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 relative z-10">
+          <div className="text-center mb-8 md:mb-16 relative z-10">
             <div className={`inline-flex items-center px-4 py-2 rounded-full bg-indigo-500/20 backdrop-blur-sm border border-indigo-400/30 text-indigo-100 mb-6 ${!shouldReduceMotion ? 'animate-fade-in' : ''}`}>
               <span className={`flex h-2 w-2 rounded-full bg-indigo-300 ${!shouldReduceMotion ? 'animate-pulse' : ''} mr-2`}></span>
               <span className="text-sm font-medium">Student Testimonials</span>
             </div>
-            <h2 id="testimonials-heading" className="text-4xl font-bold mb-4 text-white">What Our Students Say</h2>
-            <p className="text-xl text-indigo-200/80 max-w-2xl mx-auto">Join thousands of satisfied learners who've transformed their careers with our comprehensive courses</p>
+            <h2 id="testimonials-heading" className="text-2xl md:text-4xl font-bold mb-2 md:mb-4 text-white">What Our Students Say</h2>
+            <p className="text-base md:text-xl text-indigo-200/80 max-w-2xl mx-auto">Join thousands of satisfied learners who've transformed their careers with our courses</p>
           </div>
           
           {/* Modern testimonial slider with enhanced UI */}
-          <div className="relative max-w-6xl mx-auto px-2 sm:px-6">
+          <div className="relative max-w-6xl mx-auto px-0 sm:px-6">
             {/* Main slider container with minimal design */}
-            <div className="relative overflow-hidden rounded-lg bg-black/20 p-2 sm:p-4">
+            <div className="relative overflow-hidden rounded-lg bg-black/20 p-0 sm:p-4">
               {/* Clean design without decorative elements */}
               
               {/* Slider track */}
               <div 
                 ref={testimonialSliderRef}
                 className="overflow-hidden relative rounded-lg"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
               >
                 <div 
                   className="flex transition-transform duration-700 ease-out"
@@ -539,7 +569,7 @@ export default function Home() {
                   ].map((testimonial, index) => (
                     <div 
                       key={index} 
-                      className="min-w-full sm:min-w-[85%] md:min-w-[33.333%] px-1 py-1"
+                      className="min-w-full sm:min-w-[85%] md:min-w-[33.333%] px-0 sm:px-1 py-0 sm:py-1"
                     >
                       <div 
                         className={`h-full bg-black/80 rounded-lg relative group overflow-hidden transition-all duration-300 ${!isMobileDevice ? 'hover:-translate-y-1' : ''}`}
@@ -547,22 +577,22 @@ export default function Home() {
                         {/* Color accent bar above the testimonial */}
                         <div className={`absolute top-0 left-0 right-0 h-1 ${testimonial.color === 'indigo' ? 'bg-gradient-to-r from-indigo-600 to-indigo-400' : testimonial.color === 'purple' ? 'bg-gradient-to-r from-purple-600 to-purple-400' : 'bg-gradient-to-r from-pink-600 to-pink-400'}`}></div>
                         
-                        <div className="p-3 sm:p-4 h-full relative z-10">
+                        <div className="p-2 sm:p-4 h-full relative z-10">
                           {/* Minimal rating display */}
-                          <div className="flex items-center mb-2 sm:mb-3">
+                          <div className="flex items-center mb-1 sm:mb-3">
                             <div className="text-yellow-400 text-xs sm:text-sm">★★★★★</div>
                             <span className="text-gray-500 text-xs ml-1">5.0</span>
                           </div>
                           
                           {/* Compact quote with clean styling */}
-                          <div className="mb-3 sm:mb-4">
+                          <div className="mb-2 sm:mb-4">
                             <p className="text-white text-xs sm:text-sm leading-relaxed">
                               "{testimonial.quote}"
                             </p>
                           </div>
                           
                           {/* Compact user profile layout */}
-                          <div className="flex items-center pt-2 mt-2 sm:pt-3 sm:mt-3 border-t border-gray-800/30">
+                          <div className="flex items-center pt-1 mt-1 sm:pt-3 sm:mt-3 border-t border-gray-800/30">
                             <div className="mr-2 sm:mr-3">
                               <img 
                                 src={testimonial.avatar} 
@@ -607,20 +637,22 @@ export default function Home() {
               </button>
             </div>
             
-            {/* Extremely minimal pagination indicators for mobile with increased spacing */}
-            <div className="flex justify-center items-center mt-1.5 sm:mt-4 space-x-2.5 sm:space-x-3">
-              {[0, 1, 2, 3].map(pageIndex => (
-                <button 
-                  key={pageIndex} 
-                  onClick={() => setCurrentTestimonialIndex(pageIndex)}
-                  className={`${currentTestimonialIndex === pageIndex ? 
-                    'w-1 sm:w-4 bg-gradient-to-r from-indigo-600 to-violet-600' : 
-                    'w-0.5 sm:w-1.5 bg-gray-700 hover:bg-gray-600'} 
-                    h-0.5 sm:h-1.5 rounded-full transition-all duration-300`}
-                  aria-label={`Go to testimonial page ${pageIndex + 1}`}
-                />
-              ))}
-            </div>
+            {/* Pagination indicators - only visible on desktop */}
+            {!isMobileDevice && (
+              <div className="flex justify-center items-center mt-4 space-x-3">
+                {[0, 1, 2, 3].map(pageIndex => (
+                  <button 
+                    key={pageIndex} 
+                    onClick={() => setCurrentTestimonialIndex(pageIndex)}
+                    className={`${currentTestimonialIndex === pageIndex ? 
+                      'w-4 bg-gradient-to-r from-indigo-600 to-violet-600' : 
+                      'w-1.5 bg-gray-700 hover:bg-gray-600'} 
+                      h-1.5 rounded-full transition-all duration-300`}
+                    aria-label={`Go to testimonial page ${pageIndex + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>

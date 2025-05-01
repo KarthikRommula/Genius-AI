@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Search, Filter, ChevronDown, Clock, Users, Star, BookOpen } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Search, Filter, ChevronDown, Star, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
 import { isSlowDevice, useReducedMotion } from '../utils/deviceDetection';
 import { useTheme } from '../context/useTheme';
 import type { Course } from '../types';
@@ -7,77 +7,42 @@ import './Courses.css'; // Import the CSS file with animations
 
 const COURSES: Course[] = [
   {
-    id: 'cs-1',
-    title: 'Data Structures & Algorithms',
-    description: 'Master essential data structures and algorithms with practical implementations.',
-    instructor: 'Dr. Sarah Johnson',
-    thumbnail: 'https://images.unsplash.com/photo-1516116216624-53e697fedbea',
+    id: 'cs-5',
+    title: 'Python Programming',
+    description: 'Learn Python from basics to advanced concepts with practical projects and applications.',
+    instructor: 'Dr. Maya Patel',
+    thumbnail: '/images/courses/courses1.webp',
     duration: '12 weeks',
-    level: 'Advanced',
-    category: 'cs',
-    rating: 4.8,
-    students: 1200
-  },
-  {
-    id: 'cs-2',
-    title: 'Database Management Systems',
-    description: 'Learn database design, SQL, and advanced database management techniques.',
-    instructor: 'Prof. David Miller',
-    thumbnail: 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d',
-    duration: '10 weeks',
-    level: 'Intermediate',
-    category: 'cs',
-    rating: 4.7,
-    students: 980
-  },
-  {
-    id: 'ai-1',
-    title: 'Machine Learning Fundamentals',
-    description: 'Master machine learning algorithms, data preprocessing, and model evaluation.',
-    instructor: 'Prof. Alan Turing',
-    thumbnail: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c',
-    duration: '12 weeks',
-    level: 'Advanced',
-    category: 'ai',
-    rating: 4.9,
-    students: 1500
-  },
-  {
-    id: 'cs-3',
-    title: 'Web Development Bootcamp',
-    description: 'Build modern web applications with React, Node.js, and MongoDB.',
-    instructor: 'Emily Rodriguez',
-    thumbnail: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97',
-    duration: '16 weeks',
     level: 'Beginner',
     category: 'cs',
-    rating: 4.6,
-    students: 2100
+    rating: 4.9,
+    students: 2800
   },
   {
-    id: 'ai-2',
-    title: 'Deep Learning & Neural Networks',
-    description: 'Explore advanced deep learning architectures and neural network implementations.',
-    instructor: 'Dr. Yann Chen',
-    thumbnail: 'https://images.unsplash.com/photo-1555255707-c07966088b7b',
+    id: 'science-1',
+    title: 'Applied Physics',
+    description: 'Explore real-world applications of physics principles through experiments and simulations.',
+    instructor: 'Prof. Richard Feynman',
+    thumbnail: '/images/courses/courses2.webp',
     duration: '14 weeks',
-    level: 'Advanced',
-    category: 'ai',
-    rating: 4.8,
-    students: 850
+    level: 'Intermediate',
+    category: 'science',
+    rating: 4.7,
+    students: 950
   },
   {
-    id: 'cs-4',
-    title: 'Cloud Computing & DevOps',
-    description: 'Master cloud platforms, containerization, and CI/CD pipelines.',
-    instructor: 'Alex Thompson',
-    thumbnail: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa',
-    duration: '10 weeks',
-    level: 'Intermediate',
-    category: 'cs',
-    rating: 4.7,
-    students: 1350
+    id: 'math-1',
+    title: 'Mathematics 2',
+    description: 'Advanced mathematical concepts including calculus, linear algebra, and differential equations.',
+    instructor: 'Dr. Katherine Johnson',
+    thumbnail: '/images/courses/courses3.webp',
+    duration: '16 weeks',
+    level: 'Advanced',  
+    category: 'math',
+    rating: 4.8,
+    students: 1100
   }
+  
 ] as const;
 
 const LEVELS = ['All Levels', 'Beginner', 'Intermediate', 'Advanced'];
@@ -91,6 +56,8 @@ export default function Courses() {
   const [showFilters, setShowFilters] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [shouldReduceMotion, setShouldReduceMotion] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const coursesPerPage = 6; // Number of courses to display per page
   
   // Get theme context
   const { theme } = useTheme();
@@ -121,16 +88,43 @@ export default function Courses() {
     }
   };
 
-  const filteredCourses = COURSES.filter(course => {
-    const matchesCategory = selectedCategory === 'all' || course.category === selectedCategory;
-    const matchesLevel = selectedLevel === 'All Levels' || course.level === selectedLevel;
-    const matchesDuration = selectedDuration === 'All Durations' || course.duration === selectedDuration;
-    const matchesSearch = searchQuery === '' || 
-                         course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         course.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         course.instructor.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesLevel && matchesDuration && matchesSearch;
-  });
+  const filteredCourses = useMemo(() => {
+    return COURSES.filter(course => {
+      const matchesCategory = selectedCategory === 'all' || course.category === selectedCategory;
+      const matchesLevel = selectedLevel === 'All Levels' || course.level === selectedLevel;
+      const matchesDuration = selectedDuration === 'All Durations' || course.duration === selectedDuration;
+      const matchesSearch = searchQuery === '' || 
+                          course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          course.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          course.instructor.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCategory && matchesLevel && matchesDuration && matchesSearch;
+    });
+  }, [selectedCategory, selectedLevel, selectedDuration, searchQuery]);
+  
+  // Calculate pagination values
+  const totalPages = Math.ceil(filteredCourses.length / coursesPerPage);
+  
+  // Get current courses
+  const currentCourses = useMemo(() => {
+    const indexOfLastCourse = currentPage * coursesPerPage;
+    const indexOfFirstCourse = indexOfLastCourse - coursesPerPage;
+    return filteredCourses.slice(indexOfFirstCourse, indexOfLastCourse);
+  }, [filteredCourses, currentPage, coursesPerPage]);
+  
+  // Handle page changes
+  const handlePageChange = (pageNumber: number) => {
+    // Ensure page number is within valid range
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+      // Scroll to top of courses section with smooth behavior
+      document.getElementById('courses-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+  
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, selectedLevel, selectedDuration, searchQuery]);
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: 'var(--background)', color: 'var(--text-primary)' }}>
@@ -290,122 +284,245 @@ export default function Courses() {
       </div>
       
       {/* Course Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
-        <div className="mb-8 flex items-center">
-          <BookOpen className="h-6 w-6 text-indigo-400 mr-2" />
-          <h2 className="text-2xl font-bold text-white">Found {filteredCourses.length} courses</h2>
-        </div>
-
-        {/* Course grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredCourses.map(course => (
-            <div key={course.id} className="group relative">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl opacity-0 group-hover:opacity-30 blur transition duration-300"></div>
-              <div className={`group relative rounded-xl overflow-hidden ${theme === 'dark' ? 'border border-gray-800/40 bg-gray-900/30 hover:border-gray-700/60' : 'border border-slate-200/60 bg-white hover:border-slate-300'} backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:shadow-indigo-500/10`}>
+      <section id="courses-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16">
+        {filteredCourses.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            {currentCourses.map((course, index) => {
+              let categoryLabel;
+              let categoryClass;
+              
+              switch (course.category) {
+              case 'cs':
+                categoryLabel = 'Computer Science';
+                categoryClass = 'bg-indigo-500/90';
+                break;
+              case 'science':
+                categoryLabel = 'Science';
+                categoryClass = 'bg-emerald-500/90';
+                break;
+              case 'math':
+                categoryLabel = 'Mathematics';
+                categoryClass = 'bg-violet-500/90';
+                break;
+              default:
+                categoryLabel = 'Course';
+                categoryClass = 'bg-indigo-500/90';
+            }
+            
+            // Determine if we should apply will-change based on viewport visibility
+            // Only apply to first few visible cards for better performance
+            const applyWillChange = index < 3;
+            const isMobileDevice = isSlowDevice();
+            const transitionDuration = isMobileDevice ? '200ms' : '300ms';
+            
+            return (
+              <div 
+                key={course.id} 
+                className="group relative rounded-2xl overflow-hidden bg-black/70 backdrop-blur-sm md:backdrop-blur-xl border border-gray-800/50 md:hover:border-indigo-500/50 transition-colors shadow-md md:shadow-lg"
+                style={applyWillChange && !isMobileDevice ? { willChange: 'transform, opacity' } : undefined}
+              >
+                {/* Only render hover gradient on non-mobile devices */}
+                {!isMobileDevice && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                )}
+                <div className="relative">
                 <div className="relative h-48 overflow-hidden">
                   <img
                     src={course.thumbnail}
                     alt={course.title}
-                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                    className={`w-full h-full object-cover ${!isMobileDevice ? 'transform group-hover:scale-105 transition-transform' : ''}`}
+                    style={!isMobileDevice ? { transitionDuration } : undefined}
                     loading="lazy"
+                    width="400"
+                    height="225"
+                    decoding="async"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-                  <div className="absolute top-4 left-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium backdrop-blur-md ${
-                      course.level === 'Beginner' ? 'bg-green-500/80 text-white' :
-                      course.level === 'Intermediate' ? 'bg-yellow-500/80 text-white' :
-                      'bg-red-500/80 text-white'
-                    }`}>
-                      {course.level}
+                  {/* Simplified gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
+                  <div className="absolute top-3 left-3">
+                    <span className={`px-2 py-1 ${categoryClass} text-white text-xs font-medium rounded-full`}>
+                      {categoryLabel}
                     </span>
                   </div>
-                  <div className="absolute top-4 right-4">
-                    <div className="flex items-center bg-black/60 backdrop-blur-md rounded-full px-2 py-1">
-                      <Star className="h-3.5 w-3.5 text-yellow-400 fill-current" />
-                      <span className="text-xs font-medium text-white ml-1">{course.rating}</span>
-                    </div>
+                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                    <span className="px-2 py-1 bg-white/10 text-white text-xs font-medium rounded-full">
+                      {course.level}
+                    </span>
+                    <span className="px-2 py-1 bg-white/10 text-white text-xs font-medium rounded-full">
+                      {course.duration}
+                    </span>
                   </div>
                 </div>
                 
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-indigo-400 transition-colors">
+                <div className="p-4 md:p-6">
+                  {/* Simplified tags for mobile */}
+                  <div className="flex flex-wrap items-center gap-1.5 mb-3">
+                    <span className="px-2 py-0.5 bg-indigo-500/10 text-indigo-300 text-xs font-medium rounded-full">
+                      {course.category.toUpperCase()}
+                    </span>
+                  </div>
+                  
+                  <h3 className={`text-lg font-bold text-white mb-2 ${!isMobileDevice ? 'group-hover:text-indigo-400 transition-colors' : ''}`}>
                     {course.title}
                   </h3>
-                  <p className="text-gray-400 mb-4 line-clamp-2">{course.description}</p>
+                  <p className="text-sm text-slate-300 mb-4 line-clamp-2">{course.description}</p>
                   
-                  <div className="flex items-center text-sm text-gray-400 mb-4">
-                    <div className="flex items-center mr-4">
-                      <Clock className="h-4 w-4 mr-1 text-indigo-400" />
-                      {course.duration}
-                    </div>
+                  <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center">
-                      <Users className="h-4 w-4 mr-1 text-indigo-400" />
-                      {course.students.toLocaleString()} students
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-xs mr-2">
+                        {course.instructor.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="text-xs font-medium text-white">{course.instructor}</div>
+                        <div className="text-xs text-slate-400">Instructor</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                      <span className="text-sm text-white font-medium">{course.rating}</span>
+                      <span className="text-xs text-slate-400">({course.students})</span>
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-800/30">
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-600/80 to-purple-600/80 flex items-center justify-center text-sm font-medium text-white mr-3 shadow-lg shadow-indigo-900/20">
-                        {course.instructor.split(' ').map(n => n[0]).join('')}
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-gray-200">{course.instructor}</div>
-                        <div className="text-xs text-gray-500">Instructor</div>
-                      </div>
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-700/50">
+                    <div className="text-xl font-bold text-transparent bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text">
+                      ${Math.floor(Math.random() * 100) + 99}
                     </div>
-                    <button className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-medium rounded-lg hover:from-indigo-700 hover:to-violet-700 transition-all duration-300 shadow-lg group-hover:shadow-indigo-900/30">
+                    <button className={`px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm rounded-lg ${!isMobileDevice ? 'hover:from-indigo-700 hover:to-violet-700 transition-colors' : ''} font-semibold shadow-md`}>
                       Enroll Now
                     </button>
                   </div>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-
-        {/* Pagination */}
-        <div className="mt-16 flex justify-center px-4">
-          <div className="relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full opacity-20 group-hover:opacity-40 blur transition-all duration-300"></div>
-            <nav className="relative inline-flex flex-wrap justify-center rounded-full overflow-hidden shadow-xl border border-gray-800/40 backdrop-blur-sm w-full sm:w-auto bg-gray-900/80">
-              <button className="px-4 sm:px-5 py-3 text-sm font-medium text-gray-300 hover:text-white hover:bg-indigo-600/20 transition-all duration-300 flex items-center order-1 relative group/btn">
-                <span className="absolute inset-0 bg-gradient-to-r from-indigo-600/10 to-purple-600/10 opacity-0 group-hover/btn:opacity-100 transition-opacity"></span>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5 text-indigo-400 group-hover/btn:text-indigo-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-                <span className="hidden sm:inline">Previous</span>
-                <span className="sm:hidden">Prev</span>
-              </button>
-              
-              <div className="flex">
-                <button className="w-10 sm:w-12 py-3 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-300 order-2 relative overflow-hidden group/active">
-                  <span className="absolute inset-0 w-full h-full bg-white/10 opacity-0 group-hover/active:opacity-100 transition-opacity"></span>
-                  <span className="relative">1</span>
-                </button>
-                
-                <button className="w-10 sm:w-12 py-3 text-sm font-medium text-gray-300 hover:text-white hover:bg-indigo-600/20 transition-all duration-300 order-3 relative group/num">
-                  <span className="absolute inset-0 bg-gradient-to-r from-indigo-600/10 to-purple-600/10 opacity-0 group-hover/num:opacity-100 transition-opacity"></span>
-                  <span className="relative">2</span>
-                </button>
-                
-                <button className="w-10 sm:w-12 py-3 text-sm font-medium text-gray-300 hover:text-white hover:bg-indigo-600/20 transition-all duration-300 order-4 hidden sm:block relative group/num">
-                  <span className="absolute inset-0 bg-gradient-to-r from-indigo-600/10 to-purple-600/10 opacity-0 group-hover/num:opacity-100 transition-opacity"></span>
-                  <span className="relative">3</span>
-                </button>
-              </div>
-              
-              <button className="px-4 sm:px-5 py-3 text-sm font-medium text-gray-300 hover:text-white hover:bg-indigo-600/20 transition-all duration-300 flex items-center order-5 relative group/btn">
-                <span className="absolute inset-0 bg-gradient-to-r from-indigo-600/10 to-purple-600/10 opacity-0 group-hover/btn:opacity-100 transition-opacity"></span>
-                <span className="hidden sm:inline">Next</span>
-                <span className="sm:hidden">Next</span>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1.5 text-indigo-400 group-hover/btn:text-indigo-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
-              </button>
-            </nav>
+          );
+        })}
           </div>
-        </div>
+        )}
+        {/* Pagination - Modern and minimalistic design */}
+        {totalPages > 1 && (
+          <div className="mt-16 mb-2 flex justify-center px-4">
+            <div className="relative w-full max-w-md">
+              {/* Minimalistic pagination container */}
+              <nav 
+                className="relative flex items-center justify-center space-x-1 sm:space-x-2"
+                aria-label="Pagination"
+                role="navigation"
+              >
+                {/* Previous button - Minimalist design */}
+                <button 
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={`w-10 h-10 flex items-center justify-center rounded-full relative overflow-hidden touch-manipulation transition-all duration-300 ${currentPage === 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-gray-800/70 active:scale-95'}`}
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft className={`h-5 w-5 ${currentPage === 1 ? 'text-gray-500' : 'text-indigo-400'}`} />
+                </button>
+              
+                {/* Pagination numbers with minimalist design */}
+                <div className="flex items-center overflow-x-auto hide-scrollbar py-1" 
+                     style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                  
+                  {/* First page button */}
+                  {currentPage > 2 && (
+                    <button 
+                      onClick={() => handlePageChange(1)}
+                      className="w-8 h-8 mx-0.5 flex items-center justify-center rounded-full text-sm font-medium text-gray-400 hover:text-white transition-all duration-300 hover:bg-gray-800/50"
+                      aria-label="Page 1"
+                    >
+                      <span>1</span>
+                    </button>
+                  )}
+                  
+                  {/* Minimalist ellipsis */}
+                  {currentPage > 3 && (
+                    <div className="w-8 h-8 mx-0.5 flex items-center justify-center">
+                      <span className="text-gray-500 tracking-wider">···</span>
+                    </div>
+                  )}
+                  
+                  {/* Page number buttons - Clean and minimal */}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => {
+                    // Show current page and pages nearby with improved logic for mobile
+                    const isMobile = window.innerWidth < 640;
+                    const visibleRange = isMobile ? 1 : 2;
+                    
+                    if (
+                      pageNum === 1 && currentPage <= 3 || // Always show first page if we're near it
+                      pageNum === totalPages && currentPage >= totalPages - 2 || // Always show last page if we're near it
+                      Math.abs(pageNum - currentPage) <= visibleRange // Show pages within range
+                    ) {
+                      return (
+                        <button 
+                          key={pageNum}
+                          onClick={() => handlePageChange(pageNum)}
+                          className={`w-8 h-8 mx-0.5 flex items-center justify-center rounded-full text-sm font-medium transition-all duration-300 ${currentPage === pageNum ? 
+                            'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' : 
+                            'text-gray-400 hover:text-white hover:bg-gray-800/50'}`}
+                          aria-label={`Page ${pageNum}`}
+                          aria-current={currentPage === pageNum ? 'page' : undefined}
+                        >
+                          <span>{pageNum}</span>
+                        </button>
+                      );
+                    }
+                    return null;
+                  })}
+                  
+                  {/* Minimalist ellipsis */}
+                  {currentPage < totalPages - 2 && (
+                    <div className="w-8 h-8 mx-0.5 flex items-center justify-center">
+                      <span className="text-gray-500 tracking-wider">···</span>
+                    </div>
+                  )}
+                  
+                  {/* Last page button */}
+                  {currentPage < totalPages - 1 && (
+                    <button 
+                      onClick={() => handlePageChange(totalPages)}
+                      className="w-8 h-8 mx-0.5 flex items-center justify-center rounded-full text-sm font-medium text-gray-400 hover:text-white transition-all duration-300 hover:bg-gray-800/50"
+                      aria-label={`Page ${totalPages}`}
+                    >
+                      <span>{totalPages}</span>
+                    </button>
+                  )}
+                </div>
+                
+                {/* Next button - Minimalist design */}
+                <button 
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`w-10 h-10 flex items-center justify-center rounded-full relative overflow-hidden touch-manipulation transition-all duration-300 ${currentPage === totalPages ? 'opacity-30 cursor-not-allowed' : 'hover:bg-gray-800/70 active:scale-95'}`}
+                  aria-label="Next page"
+                >
+                  <ChevronRight className={`h-5 w-5 ${currentPage === totalPages ? 'text-gray-500' : 'text-indigo-400'}`} />
+                </button>
+              </nav>
+            </div>
+          </div>
+        )}
+        
+        {/* No results message */}
+        {filteredCourses.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+            <div className="w-16 h-16 mb-6 rounded-full bg-indigo-600/20 flex items-center justify-center">
+              <BookOpen className="h-8 w-8 text-indigo-400" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">No courses found</h3>
+            <p className="text-gray-400 max-w-md">Try adjusting your search or filter criteria to find more courses.</p>
+            <button 
+              onClick={() => {
+                setSelectedCategory('all');
+                setSelectedLevel('All Levels');
+                setSelectedDuration('All Durations');
+                setSearchQuery('');
+              }}
+              className="mt-6 px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+            >
+              Reset filters
+            </button>
+          </div>
+        )}
       </section>
     </main>
   );
