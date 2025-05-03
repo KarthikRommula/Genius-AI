@@ -3,7 +3,12 @@ import { Play, Download, Copy, Save, Layout, Code, Monitor, RefreshCw, Bug, Zap,
 import Editor, { OnMount } from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
 
-export default function CodePlayground() {
+interface CodePlaygroundProps {
+  isMobileDevice?: boolean;
+  shouldReduceMotion?: boolean;
+}
+
+export default function CodePlayground({ isMobileDevice = false, shouldReduceMotion = false }: CodePlaygroundProps) {
     const [output, setOutput] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
     const [htmlCode, setHtmlCode] = useState('<div class="container">\n  <h1>Hello World!</h1>\n  <p>Welcome to the Web Playground</p>\n</div>');
@@ -26,13 +31,54 @@ export default function CodePlayground() {
     const outputRef = useRef<HTMLDivElement>(null);
     const previewIframeRef = useRef<HTMLIFrameElement>(null);
 
-    // Check if we're on the client side
+    // Check if we're on the client side and apply device-specific optimizations
     useEffect(() => {
         setIsClient(true);
-    }, []);
+        
+        // Apply mobile-specific optimizations
+        if (isMobileDevice) {
+            // Set a more mobile-friendly layout by default
+            setLayout('editor');
+            
+            // Simplify the editor experience for mobile
+            if (editorRef.current) {
+                editorRef.current.updateOptions({
+                    fontSize: 14,
+                    minimap: { enabled: false },
+                    lineNumbers: 'off',
+                    scrollBeyondLastLine: false
+                });
+            }
+        }
+        
+        // Apply reduced motion settings if needed
+        if (shouldReduceMotion) {
+            // Disable animations that might affect performance
+            setAutoRun(false); // Disable auto-run to reduce processing
+        }
+    }, [isMobileDevice, shouldReduceMotion]);
 
     const handleEditorDidMount: OnMount = (editor: editor.IStandaloneCodeEditor) => {
         editorRef.current = editor;
+        
+        // Apply device-specific editor settings on mount
+        if (isMobileDevice) {
+            editor.updateOptions({
+                fontSize: 14,
+                minimap: { enabled: false },
+                lineNumbers: 'off',
+                scrollBeyondLastLine: false
+            });
+        }
+        
+        // Apply performance optimizations for reduced motion
+        if (shouldReduceMotion) {
+            editor.updateOptions({
+                cursorBlinking: 'solid',
+                cursorSmoothCaretAnimation: 'off',
+                smoothScrolling: false
+            });
+        }
     };
 
     const getEditorLanguage = () => {
@@ -890,10 +936,7 @@ ${optimizedCode}`;
                 </div>
             </div>
 
-            {/* Footer */}
-            <div className="mt-4 text-center text-gray-500 text-sm">
-                <p>Web Code Playground - Build, test, and debug web code in real-time.</p>
-            </div>
+
         </div>
     );
 }

@@ -130,7 +130,7 @@ export default function Courses() {
     <main className="min-h-screen" style={{ backgroundColor: 'var(--background)', color: 'var(--text-primary)' }}>
       {/* Header */}
       <section className="relative overflow-hidden pt-24 pb-16" style={{ background: 'var(--header-bg)' }}>
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa')] opacity-10 bg-cover bg-center"></div>
+        <div className="absolute inset-0 bg-[url('/images/courses/courses_hero.webp')] opacity-10 bg-cover bg-center"></div>
         {/* Static gradient background on mobile, animated on desktop */}
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">

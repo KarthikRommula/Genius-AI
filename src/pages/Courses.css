@@ -115,3 +115,24 @@
 .hide-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
+
+/* Gradient shift animation for hero backgrounds */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+    opacity: 0.05;
+  }
+  50% {
+    background-position: 100% 50%;
+    opacity: 0.1;
+  }
+  100% {
+    background-position: 0% 50%;
+    opacity: 0.05;
+  }
+}
+
+.animate-gradient-shift {
+  animation: gradientShift 8s ease infinite;
+  background-size: 200% 200%;
+}
