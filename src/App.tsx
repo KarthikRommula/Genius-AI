@@ -5,6 +5,9 @@ import { Footer } from "./components/Footer";
 import { ThemeProvider } from "./context/ThemeContext";
 
 // Lazy load pages for better performance
+const PP = lazy(() => import('./pages/PP'));
+const AP = lazy(() => import('./pages/AP'));
+const Mathematics = lazy(() => import('./pages/Mathematics'));
 const Home = lazy(() => import('./pages/Home'));
 const Courses = lazy(() => import('./pages/Courses'));
 const Profile = lazy(() => import('./pages/Profile').then(module => ({ default: module.Profile })));
@@ -23,7 +26,7 @@ const LoadingFallback = () => (
   </div>
 );
 
-function App() {  
+function App() {
   return (
     <ThemeProvider>
       <Router>
@@ -39,10 +42,13 @@ function App() {
                 <Route path="/community" element={<Community />} />
                 <Route path="/resources" element={<Resources />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/PP" element={<PP />} />
+                <Route path="/AP" element={<AP />} />
+                <Route path="/Mathematics" element={<Mathematics />} />
               </Routes>
             </Suspense>
           </main>
-          <Footer />  
+          <Footer />
         </div>
       </Router>
     </ThemeProvider>

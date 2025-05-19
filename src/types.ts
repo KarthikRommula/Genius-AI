@@ -9,4 +9,5 @@ export interface Course {
   category: string;
   rating: number;
   students: number;
+  enrolUrl: string;
 }
