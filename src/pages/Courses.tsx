@@ -27,6 +27,7 @@ const COURSES: Course[] = [
     category: "cs",
     rating: 4.9,
     students: 2800,
+    enrolUrl: "/PP",
   },
   {
     id: "science-1",
@@ -40,6 +41,7 @@ const COURSES: Course[] = [
     category: "science",
     rating: 4.7,
     students: 950,
+    enrolUrl: "/AP",
   },
   {
     id: "math-1",
@@ -53,6 +55,7 @@ const COURSES: Course[] = [
     category: "math",
     rating: 4.8,
     students: 1100,
+    enrolUrl: "/Mathematics",
   },
 ] as const;
 
@@ -185,36 +188,30 @@ export default function Courses() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center md:text-left max-w-3xl">
             <div
-              className={`inline-flex items-center px-3 py-1.5 md:px-4 md:py-2 rounded-full ${
-                theme === "dark"
+              className={`inline-flex items-center px-3 py-1.5 md:px-4 md:py-2 rounded-full ${theme === "dark"
                   ? "bg-indigo-500/30 border border-indigo-400/50 text-indigo-100"
                   : "bg-indigo-500/20 border border-indigo-400/30 text-indigo-700"
-              } backdrop-blur-sm mb-4 md:mb-6 ${
-                !shouldReduceMotion ? "animate-fade-in" : ""
-              }`}
+                } backdrop-blur-sm mb-4 md:mb-6 ${!shouldReduceMotion ? "animate-fade-in" : ""
+                }`}
             >
               <span
-                className={`flex h-2 w-2 rounded-full bg-indigo-300 ${
-                  !shouldReduceMotion ? "animate-pulse" : ""
-                } mr-2`}
+                className={`flex h-2 w-2 rounded-full bg-indigo-300 ${!shouldReduceMotion ? "animate-pulse" : ""
+                  } mr-2`}
               ></span>
               <span className="text-xs md:text-sm font-medium">
                 Expert-led curriculum
               </span>
             </div>
             <h1
-              className={`text-3xl md:text-5xl font-bold mb-3 md:mb-4 tracking-tight ${
-                !shouldReduceMotion ? "animate-fade-in animate-delay-100" : ""
-              } drop-shadow-lg`}
+              className={`text-3xl md:text-5xl font-bold mb-3 md:mb-4 tracking-tight ${!shouldReduceMotion ? "animate-fade-in animate-delay-100" : ""
+                } drop-shadow-lg`}
             >
               Explore Our Courses
             </h1>
             <p
-              className={`text-lg md:text-xl max-w-3xl ${
-                theme === "dark" ? "text-gray-300" : "text-gray-600"
-              } ${
-                !shouldReduceMotion ? "animate-fade-in animate-delay-200" : ""
-              }`}
+              className={`text-lg md:text-xl max-w-3xl ${theme === "dark" ? "text-gray-300" : "text-gray-600"
+                } ${!shouldReduceMotion ? "animate-fade-in animate-delay-200" : ""
+                }`}
             >
               Discover comprehensive courses designed to help you master new
               skills and advance your career.
@@ -226,17 +223,14 @@ export default function Courses() {
       {/* Minimalistic Search and Filter Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-4 md:-mt-10 lg:-mt-8 relative z-10">
         <div
-          className={`relative ${
-            theme === "dark" ? "bg-gray-900" : "bg-white"
-          } border ${
-            theme === "dark" ? "border-gray-800" : "border-gray-200"
-          } rounded-xl shadow-md overflow-hidden`}
+          className={`relative ${theme === "dark" ? "bg-gray-900" : "bg-white"
+            } border ${theme === "dark" ? "border-gray-800" : "border-gray-200"
+            } rounded-xl shadow-md overflow-hidden`}
         >
           {/* Minimalistic Search Form with Filter Toggle Button */}
           <div
-            className={`relative flex-grow border-b ${
-              theme === "dark" ? "border-gray-800" : "border-gray-200"
-            }`}
+            className={`relative flex-grow border-b ${theme === "dark" ? "border-gray-800" : "border-gray-200"
+              }`}
           >
             <div className="flex items-center h-14 md:h-16">
               <div className="pl-5 text-gray-500">
@@ -247,9 +241,8 @@ export default function Courses() {
                 placeholder="Search for courses..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className={`w-full h-full py-4 pl-3 pr-12 bg-transparent ${
-                  theme === "dark" ? "text-white" : "text-slate-900"
-                } focus:outline-none focus:ring-0 border-0 text-base placeholder:text-gray-400 dark:placeholder:text-gray-500`}
+                className={`w-full h-full py-4 pl-3 pr-12 bg-transparent ${theme === "dark" ? "text-white" : "text-slate-900"
+                  } focus:outline-none focus:ring-0 border-0 text-base placeholder:text-gray-400 dark:placeholder:text-gray-500`}
               />
               {searchQuery && (
                 <button
@@ -262,15 +255,13 @@ export default function Courses() {
               )}
               <button
                 onClick={toggleFilters}
-                className={`flex items-center justify-center w-14 md:w-16 h-14 md:h-16 border-l ${
-                  theme === "dark" ? "border-gray-800" : "border-gray-200"
-                } ${
-                  activeFilters > 0
+                className={`flex items-center justify-center w-14 md:w-16 h-14 md:h-16 border-l ${theme === "dark" ? "border-gray-800" : "border-gray-200"
+                  } ${activeFilters > 0
                     ? "text-indigo-500"
                     : theme === "dark"
-                    ? "text-gray-400"
-                    : "text-gray-500"
-                } hover:text-gray-600 dark:hover:text-gray-300`}
+                      ? "text-gray-400"
+                      : "text-gray-500"
+                  } hover:text-gray-600 dark:hover:text-gray-300`}
                 aria-label="Toggle filters"
               >
                 {activeFilters > 0 && (
@@ -290,16 +281,14 @@ export default function Courses() {
             <div className="grid grid-cols-1 sm:grid-cols-3">
               {/* Category Filter */}
               <div
-                className={`relative border-b sm:border-b-0 sm:border-r ${
-                  theme === "dark" ? "border-gray-800" : "border-gray-200"
-                }`}
+                className={`relative border-b sm:border-b-0 sm:border-r ${theme === "dark" ? "border-gray-800" : "border-gray-200"
+                  }`}
               >
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className={`w-full h-14 md:h-16 appearance-none bg-transparent ${
-                    theme === "dark" ? "text-white" : "text-slate-900"
-                  } px-4 py-2 focus:outline-none cursor-pointer`}
+                  className={`w-full h-14 md:h-16 appearance-none bg-transparent ${theme === "dark" ? "text-white" : "text-slate-900"
+                    } px-4 py-2 focus:outline-none cursor-pointer`}
                 >
                   {CATEGORIES.map((category) => (
                     <option key={category.value} value={category.value}>
@@ -314,16 +303,14 @@ export default function Courses() {
 
               {/* Level Filter */}
               <div
-                className={`relative border-b sm:border-b-0 sm:border-r ${
-                  theme === "dark" ? "border-gray-800" : "border-gray-200"
-                }`}
+                className={`relative border-b sm:border-b-0 sm:border-r ${theme === "dark" ? "border-gray-800" : "border-gray-200"
+                  }`}
               >
                 <select
                   value={selectedLevel}
                   onChange={(e) => setSelectedLevel(e.target.value)}
-                  className={`w-full h-14 md:h-16 appearance-none bg-transparent ${
-                    theme === "dark" ? "text-white" : "text-slate-900"
-                  } px-4 py-2 focus:outline-none cursor-pointer`}
+                  className={`w-full h-14 md:h-16 appearance-none bg-transparent ${theme === "dark" ? "text-white" : "text-slate-900"
+                    } px-4 py-2 focus:outline-none cursor-pointer`}
                 >
                   {LEVELS.map((level) => (
                     <option key={level} value={level}>
@@ -338,16 +325,14 @@ export default function Courses() {
 
               {/* Duration Filter */}
               <div
-                className={`relative border-b sm:border-b-0 ${
-                  theme === "dark" ? "border-gray-800" : "border-gray-200"
-                }`}
+                className={`relative border-b sm:border-b-0 ${theme === "dark" ? "border-gray-800" : "border-gray-200"
+                  }`}
               >
                 <select
                   value={selectedDuration}
                   onChange={(e) => setSelectedDuration(e.target.value)}
-                  className={`w-full h-14 md:h-16 appearance-none bg-transparent ${
-                    theme === "dark" ? "text-white" : "text-slate-900"
-                  } px-4 py-2 focus:outline-none cursor-pointer`}
+                  className={`w-full h-14 md:h-16 appearance-none bg-transparent ${theme === "dark" ? "text-white" : "text-slate-900"
+                    } px-4 py-2 focus:outline-none cursor-pointer`}
                 >
                   {DURATIONS.map((duration) => (
                     <option key={duration} value={duration}>
@@ -369,25 +354,22 @@ export default function Courses() {
           <div className="flex flex-wrap items-center gap-2 mt-4 mb-2">
             {selectedCategory !== "all" && (
               <div
-                className={`inline-flex items-center h-10 px-3 ${
-                  theme === "dark"
+                className={`inline-flex items-center h-10 px-3 ${theme === "dark"
                     ? "bg-gray-800 border-gray-700"
                     : "bg-gray-100 border-gray-200"
-                } border text-sm rounded-md`}
+                  } border text-sm rounded-md`}
               >
                 <span
-                  className={`font-medium ${
-                    theme === "dark" ? "text-gray-200" : "text-gray-700"
-                  } mr-2`}
+                  className={`font-medium ${theme === "dark" ? "text-gray-200" : "text-gray-700"
+                    } mr-2`}
                 >
                   {CATEGORIES.find((c) => c.value === selectedCategory)?.label}
                 </span>
                 <button
                   onClick={() => setSelectedCategory("all")}
                   className={`text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none`}
-                  aria-label={`Remove ${
-                    CATEGORIES.find((c) => c.value === selectedCategory)?.label
-                  } filter`}
+                  aria-label={`Remove ${CATEGORIES.find((c) => c.value === selectedCategory)?.label
+                    } filter`}
                 >
                   <X className="h-3.5 w-3.5 text-gray-400" />
                 </button>
@@ -396,16 +378,14 @@ export default function Courses() {
 
             {selectedLevel !== "All Levels" && (
               <div
-                className={`inline-flex items-center h-10 px-3 ${
-                  theme === "dark"
+                className={`inline-flex items-center h-10 px-3 ${theme === "dark"
                     ? "bg-gray-800 border-gray-700"
                     : "bg-gray-100 border-gray-200"
-                } border text-sm rounded-md`}
+                  } border text-sm rounded-md`}
               >
                 <span
-                  className={`font-medium ${
-                    theme === "dark" ? "text-gray-200" : "text-gray-700"
-                  } mr-2`}
+                  className={`font-medium ${theme === "dark" ? "text-gray-200" : "text-gray-700"
+                    } mr-2`}
                 >
                   {selectedLevel}
                 </span>
@@ -421,16 +401,14 @@ export default function Courses() {
 
             {selectedDuration !== "All Durations" && (
               <div
-                className={`inline-flex items-center h-10 px-3 ${
-                  theme === "dark"
+                className={`inline-flex items-center h-10 px-3 ${theme === "dark"
                     ? "bg-gray-800 border-gray-700"
                     : "bg-gray-100 border-gray-200"
-                } border text-sm rounded-md`}
+                  } border text-sm rounded-md`}
               >
                 <span
-                  className={`font-medium ${
-                    theme === "dark" ? "text-gray-200" : "text-gray-700"
-                  } mr-2`}
+                  className={`font-medium ${theme === "dark" ? "text-gray-200" : "text-gray-700"
+                    } mr-2`}
                 >
                   {selectedDuration}
                 </span>
@@ -447,16 +425,14 @@ export default function Courses() {
             {/* Reset button with consistent styling */}
             <div
               onClick={resetFilters}
-              className={`inline-flex items-center h-10 px-3 ${
-                theme === "dark"
+              className={`inline-flex items-center h-10 px-3 ${theme === "dark"
                   ? "bg-gray-800 border-gray-700"
                   : "bg-gray-100 border-gray-200"
-              } border text-sm rounded-md cursor-pointer`}
+                } border text-sm rounded-md cursor-pointer`}
             >
               <span
-                className={`font-medium ${
-                  theme === "dark" ? "text-gray-200" : "text-gray-700"
-                } mr-2`}
+                className={`font-medium ${theme === "dark" ? "text-gray-200" : "text-gray-700"
+                  } mr-2`}
               >
                 Reset
               </span>
@@ -519,11 +495,10 @@ export default function Courses() {
                       <img
                         src={course.thumbnail}
                         alt={course.title}
-                        className={`w-full h-full object-cover ${
-                          !isMobileDevice
+                        className={`w-full h-full object-cover ${!isMobileDevice
                             ? "transform group-hover:scale-105 transition-transform"
                             : ""
-                        }`}
+                          }`}
                         style={
                           !isMobileDevice ? { transitionDuration } : undefined
                         }
@@ -560,11 +535,10 @@ export default function Courses() {
                       </div>
 
                       <h3
-                        className={`text-lg font-bold text-white mb-2 ${
-                          !isMobileDevice
+                        className={`text-lg font-bold text-white mb-2 ${!isMobileDevice
                             ? "group-hover:text-indigo-400 transition-colors"
                             : ""
-                        }`}
+                          }`}
                       >
                         {course.title}
                       </h3>
@@ -602,11 +576,8 @@ export default function Courses() {
                           ${Math.floor(Math.random() * 100) + 99}
                         </div>
                         <button
-                          className={`px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm rounded-lg ${
-                            !isMobileDevice
-                              ? "hover:from-indigo-700 hover:to-violet-700 transition-colors"
-                              : ""
-                          } font-semibold shadow-md`}
+                          onClick={() => window.location.href = course.enrolUrl} // Simple redirect
+                          className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg font-semibold shadow-md hover:from-indigo-700 hover:to-violet-700 transition-colors"
                         >
                           Enroll Now
                         </button>
@@ -632,17 +603,15 @@ export default function Courses() {
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className={`w-10 h-10 flex items-center justify-center rounded-full relative overflow-hidden touch-manipulation transition-all duration-300 ${
-                    currentPage === 1
+                  className={`w-10 h-10 flex items-center justify-center rounded-full relative overflow-hidden touch-manipulation transition-all duration-300 ${currentPage === 1
                       ? "opacity-30 cursor-not-allowed"
                       : "hover:bg-gray-800/70 active:scale-95"
-                  }`}
+                    }`}
                   aria-label="Previous page"
                 >
                   <ChevronLeft
-                    className={`h-5 w-5 ${
-                      currentPage === 1 ? "text-gray-500" : "text-indigo-400"
-                    }`}
+                    className={`h-5 w-5 ${currentPage === 1 ? "text-gray-500" : "text-indigo-400"
+                      }`}
                   />
                 </button>
 
@@ -686,11 +655,10 @@ export default function Courses() {
                           <button
                             key={pageNum}
                             onClick={() => handlePageChange(pageNum)}
-                            className={`w-8 h-8 mx-0.5 flex items-center justify-center rounded-full text-sm font-medium transition-all duration-300 ${
-                              currentPage === pageNum
+                            className={`w-8 h-8 mx-0.5 flex items-center justify-center rounded-full text-sm font-medium transition-all duration-300 ${currentPage === pageNum
                                 ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20"
                                 : "text-gray-400 hover:text-white hover:bg-gray-800/50"
-                            }`}
+                              }`}
                             aria-label={`Page ${pageNum}`}
                             aria-current={
                               currentPage === pageNum ? "page" : undefined
@@ -727,19 +695,17 @@ export default function Courses() {
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className={`w-10 h-10 flex items-center justify-center rounded-full relative overflow-hidden touch-manipulation transition-all duration-300 ${
-                    currentPage === totalPages
+                  className={`w-10 h-10 flex items-center justify-center rounded-full relative overflow-hidden touch-manipulation transition-all duration-300 ${currentPage === totalPages
                       ? "opacity-30 cursor-not-allowed"
                       : "hover:bg-gray-800/70 active:scale-95"
-                  }`}
+                    }`}
                   aria-label="Next page"
                 >
                   <ChevronRight
-                    className={`h-5 w-5 ${
-                      currentPage === totalPages
+                    className={`h-5 w-5 ${currentPage === totalPages
                         ? "text-gray-500"
                         : "text-indigo-400"
-                    }`}
+                      }`}
                   />
                 </button>
               </nav>
